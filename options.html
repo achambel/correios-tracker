@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <div id="message"></div>
+    <div>
+      <form>
+        <fieldset>
+          <legend>Configure Items</legend>
+          <label for="referenceNumber">Reference Number: </label>
+          <input type="text" id="referenceNumber" maxlength="21"
+                                                  placeholder="E.g. AB586985609GB"
+                                                  pattern="[\w\d]{9,21}"
+                                                  required>
+          <button>Add</button>
+        </fieldset>
+      </form>
+    </div>
+
+    <hr>
+
+    <div>
+        <form id="formSettings">
+          <fieldset>
+            <legend>Settings</legend>
+            <label for="checkInterval">Ckeck for status every </label>
+            <input type="number" id="checkInterval" value="60" min="1" max="99" required>
+            <select id="ckeckUnitInterval">
+              <option value="minute">Minute(s)</option>
+              <option value="hour">Hour(s)</option>
+              <option value="day">Day(s)</option>
+            </select>
+            <p>
+              <label for="showNotification">Show notification when it's done?</label>
+              <input type="checkbox" id="showNotification" checked>
+            </p>
+            <p>
+              <button>Save</button>
+            </p>
+          </fieldset>
+        </form>
+    </div>
+
+    <script src="js/options.js" charset="utf-8"></script>
+  </body>
+</html>
