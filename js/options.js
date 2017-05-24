@@ -30,7 +30,7 @@ function saveSettings(e) {
   e.preventDefault();
 
   const settings = {
-      checkInterval: document.getElementById('checkInterval').value,
+      checkInterval: parseInt(document.getElementById('checkInterval').value),
       ckeckUnitInterval: document.getElementById('ckeckUnitInterval').value,
       showNotification: document.getElementById('showNotification').checked
   };

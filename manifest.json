@@ -10,7 +10,7 @@
 
   "minimum_chrome_version": "45",
 
-  "permissions": ["notifications", "storage"],
+  "permissions": ["notifications", "storage", "https://www.royalmail.com/"],
 
   "background": {
     "scripts": ["js/background.js"]
@@ -20,6 +20,8 @@
     /*"default_icon": "icon.png",*/
     "default_title": "Royal Mail Tracker - check status of mail items"
     /*"default_popup": "popup.html"*/
-  }
+  },
+
+  "content_security_policy": "script-src 'self' https://unpkg.com/jquery/dist/jquery.min.js; object-src 'self'"
 
 }
