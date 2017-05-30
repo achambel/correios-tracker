@@ -7,7 +7,7 @@
   <body>
     <div id="message"></div>
     <div>
-      <form>
+      <form id="formSaveReferenceNumber">
         <fieldset>
           <legend>Configure Items</legend>
           <label for="referenceNumber">Reference Number: </label>
@@ -20,6 +20,8 @@
       </form>
     </div>
 
+    <div id="trackItems"></div>
+
     <hr>
 
     <div>
@@ -28,13 +30,13 @@
             <legend>Settings</legend>
             <label for="checkInterval">Ckeck for status every </label>
             <input type="number" id="checkInterval" value="60" min="1" max="99" required>
-            <select id="ckeckUnitInterval">
+            <select id="checkUnitInterval">
               <option value="minute">Minute(s)</option>
               <option value="hour">Hour(s)</option>
               <option value="day">Day(s)</option>
             </select>
             <p>
-              <label for="showNotification">Show notification when it's done?</label>
+              <label for="showNotification">Show notification when checking is complete?</label>
               <input type="checkbox" id="showNotification" checked>
             </p>
             <p>
@@ -44,8 +46,9 @@
         </form>
     </div>
 
-    <script src="https://unpkg.com/jquery/dist/jquery.min.js" charset="utf-8"></script>
-    <script src="js/options.js" charset="utf-8"></script>
-    <script src="js/service.js" charset="utf-8"></script>
+    <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/options.js"></script>
+    <script src="js/service.js"></script>
   </body>
 </html>

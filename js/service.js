@@ -1,3 +1,33 @@
+const Item = function(referenceNumber) {
+  
+  return {
+    referenceNumber: referenceNumber,
+    lastStatus: '',
+    via: '',
+    tracks: [],
+    checkedAt: '',
+    nextCheck: new Date(),
+    setNextCheck: function(settings) {
+
+      const baseDate = this.checkedAt || new Date();
+
+      if(settings.checkUnitInterval === 'minute') {
+
+        this.nextCheck.setMinutes(baseDate.getMinutes() + settings.checkInterval);
+      }
+      else if(settings.checkUnitInterval === 'hour') {
+
+        this.nextCheck.setHours(baseDate.getHours() + settings.checkInterval);
+      }
+      else if(settings.checkUnitInterval === 'day') {
+
+        this.nextCheck.setDate(baseDate.getDate() + settings.checkInterval);
+      }
+    }
+  }
+
+};
+
 function trackerCallback(response) {
 
   const html = $.parseHTML(response);
@@ -8,6 +38,7 @@ function trackerCallback(response) {
 function trackable(html) {
   
   const referenceNumber = $(html).find('dl.tnt-block-parcel dd').text();
+  const lastStatus = $(html).find("dd.tnt-item-status").text();
   const via = $(html).find('dl.tnt-block-service dd span.description').text('').parent().text().trim();
   const history = $(html).find('table.tnt-tracking-history tbody tr');
   let tracks = [];
@@ -27,21 +58,24 @@ function trackable(html) {
 
   });
 
-  item = {
-
-    referenceNumber: referenceNumber,
-    via: via,
-    tracks: tracks,
-    checkedAt: new Date(),
-    nextCheck: new Date()
-  };
+  let item = new Item(referenceNumber);
+  item.lastStatus = lastStatus;
+  item.checkedAt = new Date();
+  item.via = via;
+  item.tracks = tracks;
 
   saveTrackable(item);
 
+  const options = {
+    body: `Last status: ${item.lastStatus}\nChecked at: ${formatDate(item.checkedAt)}`
+   };
+
+   new Notification(item.referenceNumber, options);
+
 } 
 
-function tracker(referenceNumber = 'LB209070959GB') {
-  // "LB209070959GB"
+function tracker(referenceNumber) {
+
   const url = "https://www.royalmail.com/business/track-your-item";
   const data = {"parcel_tracking_number": referenceNumber};
 
@@ -51,35 +85,63 @@ function tracker(referenceNumber = 'LB209070959GB') {
 
 function saveTrackable(item) {
 
-  chrome.storage.sync.get('settings', (storage) => {
-     
-     const settings = JSON.parse(storage.settings);
+  chrome.storage.sync.get(null, (storage) => {
 
-     if(settings.ckeckUnitInterval === 'minute') {
+    const settings = JSON.parse(storage.settings);
+    let trackItems = [];
 
-        item.nextCheck.setMinutes(item.nextCheck.getMinutes() + settings.checkInterval);
-     
-     }
-     
-     else if(settings.ckeckUnitInterval === 'hour') {
+    item.setNextCheck(settings);
 
-        item.nextCheck.setHours(item.checkedAt.getHours() + settings.checkInterval);
-     
-     }
+    if(storage.hasOwnProperty('trackItems')) {
 
-     else if(settings.ckeckUnitInterval === 'day') {
+      trackItems = JSON.parse(storage.trackItems);
+    }
 
-        item.nextCheck.setDate(item.checkedAt.getDate() + settings.checkInterval);
+    const itemExists = trackItems.findIndex(oldItem => oldItem.referenceNumber === item.referenceNumber);
 
-     }
+    if(itemExists >= 0) {
 
-     const save = {'item': JSON.stringify(item)};
-     chrome.storage.sync.set(save);
+      trackItems[itemExists] = item;
+    } 
+    else {
+      trackItems.push(item);
+   }
 
-
+   const save = {'trackItems': JSON.stringify(trackItems)};
+   chrome.storage.sync.set(save, loadTrackItems);
 
   });
 
 }
 
+function checkAll() {
 
+  getTrackItems().then( items => {
+
+    items.forEach( item => tracker(item.referenceNumber) );
+  })
+
+}
+
+function getTrackItems() {
+
+  const promise = new Promise( (resolve, reject) => {
+
+    let trackItems = [];
+    
+    chrome.storage.sync.get('trackItems', storage => {
+      
+      if(storage.hasOwnProperty('trackItems')) {
+
+        trackItems = JSON.parse(storage.trackItems, dateTimeReviver);
+        
+      }
+      
+      resolve(trackItems);
+
+    });
+
+  });
+
+  return promise;
+}

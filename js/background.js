@@ -1,3 +1,10 @@
-chrome.browserAction.onClicked.addListener(function(tab) {
-  chrome.tabs.create({'url': chrome.extension.getURL('../options.html')});
+chrome.alarms.onAlarm.addListener(function( alarm ) {
+  
+  console.log("Got an alarm!", alarm);
+  
+  if(alarm.name === 'checkTrackerItems') {
+  	// todo
+  }
 });
+
+chrome.alarms.create('checkTrackerItems', {periodInMinutes: 1});
