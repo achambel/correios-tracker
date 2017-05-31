@@ -6,7 +6,7 @@ const Item = function(referenceNumber) {
     via: '',
     tracks: [],
     checkedAt: '',
-    nextCheck: new Date(),
+    nextCheck: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes()),
     setNextCheck: function(settings) {
 
       const baseDate = this.checkedAt || new Date();
@@ -107,8 +107,31 @@ function saveTrackable(item) {
       trackItems.push(item);
    }
 
-   const save = {'trackItems': JSON.stringify(trackItems)};
-   chrome.storage.sync.set(save, loadTrackItems);
+  const save = {'trackItems': JSON.stringify(trackItems)};
+  chrome.storage.sync.set(save, () => {
+
+    chrome.runtime.sendMessage({action: 'loadTrackItems'});
+    loadTrackItems();
+  });
+
+  });
+
+}
+
+function loadTrackItems() {
+  
+  getTrackItems().then( items => {
+
+    const trackItems = document.getElementById('trackItems');
+
+    if (trackItems) {
+
+      trackItems.innerHTML = renderTrackItems(items);
+      $('.show-track-history').click( (e) => loadTrackHistory(e.target.parentElement.parentElement.dataset.referenceNumber, showTrackHistory));
+      $('.remove-trackable').click( (e) => removeTrackable(e.target.parentElement.parentElement.dataset.referenceNumber));
+      $('.check-now').click( (e) => tracker(e.target.parentElement.parentElement.dataset.referenceNumber));
+      $('#checkAll').click(checkAll);
+    }
 
   });
 
@@ -119,7 +142,8 @@ function checkAll() {
   getTrackItems().then( items => {
 
     items.forEach( item => tracker(item.referenceNumber) );
-  })
+  });
+  
 
 }
 

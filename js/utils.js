@@ -3,7 +3,7 @@ function formatDate(date) {
   if(!date) return date;
 
   const language = window.navigator.language;
-  const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' };
+  const options = { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' };
 
   return date.toLocaleDateString(language, options);
 

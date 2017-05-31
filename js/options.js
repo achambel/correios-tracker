@@ -78,7 +78,7 @@ function renderTrackItems(items) {
         <th>Status</th>
         <th>Date</th>
         <th>Trackpoint</th>
-        <th>Details</th>
+        <th>Tracks</th>
         <th>Next checking</th>
         <th>Actions</th>
       </thead>
@@ -93,18 +93,18 @@ function renderTrackItems(items) {
 
   const lines = items.map( item => {
     
-    return  ` <tr>
+    return  ` <tr data-reference-number="${item.referenceNumber}">
                 <td>${item.referenceNumber}</td>
                 <td>${item.via}</td>
                 <td>${formatDate(item.checkedAt)}</td>
                 <td>${item.lastStatus}</td>
                 <td>${item.tracks.length ? item.tracks[0].date + ' ' + item.tracks[0].time : ''}</td>
                 <td>${item.tracks.length ? item.tracks[0].trackPoint : ''}</td>
-                <td>details</td>
+                <td><button class="show-track-history">show</button></td>
                 <td>${formatDate(item.nextCheck)}</td>
                 <td>
-                  <button class="check-now" data-reference-number="${item.referenceNumber}">check now</button>
-                  <button class="remove-trackable" data-reference-number="${item.referenceNumber}">remove</button>
+                  <button class="check-now">check now</button>
+                  <button class="remove-trackable">remove</button>
                 </td>
               </tr>
             `
@@ -124,18 +124,63 @@ function renderTrackItems(items) {
 
 }
 
-function loadTrackItems() {
-  
-  getTrackItems().then( items => {
+function renderTrackHistory(item) {
 
-    const trackItems = document.getElementById('trackItems');
-    trackItems.innerHTML = renderTrackItems(items);
-    $('.remove-trackable').click( (e) => removeTrackable(e.target.dataset.referenceNumber));
-    $('.check-now').click( (e) => tracker(e.target.dataset.referenceNumber));
-    $('#checkAll').click(checkAll);
+  let template = `
+    <table>
+      <caption>Reference number: ${item.referenceNumber} - via: ${item.via}</caption>
+      <thead>
+        <th>Date</th>
+        <th>Status</th>
+        <th>Trackpoint</th>
+      </thead>
+      <tbody>
+        {{lines}}
+      </tbody>
+    </table>
+  `;
+
+  const lines = item.tracks.map( track => {
+    return  `<tr>
+                <td>${track.date} ${track.time}</td>
+                <td><${track.status}/td>
+                <td>${track.trackPoint}</td>
+              </tr>
+            `
+  }).join('');
+
+  if(lines) {
+
+    template = template.replace(/{{lines}}/g, lines);
+  }
+
+  else {
+    
+    template = '<p>There are not tracks!</p>';
+  }
+
+  return template;
+
+}
+
+function loadTrackHistory(referenceNumber, callback) {
+
+  getTrackItems().then( items => {
+  
+    const itemFiltered = items.filter(item => item.referenceNumber === referenceNumber);
+  
+    if(itemFiltered.length) {
+
+      if (typeof callback === 'function') callback(renderTrackHistory(itemFiltered[0]));
+    }
 
   });
 
+}
+
+function showTrackHistory(history) {
+  // TODO: implemented a modal
+  console.log(history);
 }
 
 function removeTrackable(referenceNumber) {
@@ -164,3 +209,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.getElementById('formSaveReferenceNumber').addEventListener('submit', saveReferenceNumber);
 document.getElementById('formSettings').addEventListener('submit', saveSettings);
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+
+  if(request.action === 'loadTrackItems') {
+    loadTrackItems();
+  }
+
+})
