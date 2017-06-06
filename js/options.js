@@ -36,10 +36,6 @@ function loadSettings() {
   });
 }
 
-function message(text) {
-  document.getElementById('message').textContent = text;
-}
-
 function saveSettings(e) {
 
   e.preventDefault();
@@ -52,7 +48,9 @@ function saveSettings(e) {
 
   chrome.storage.sync.set({'settings': JSON.stringify(settings)}, function() {
 
-    message('Settings saved');
+    $('.ui.basic.modal .header').text('Message');
+    $('.ui.basic.modal .content').html('<h3>The settings have been successfully saved!</h3>');
+    $('.ui.basic.modal').modal('show');
 
   });
 
@@ -61,16 +59,18 @@ function saveSettings(e) {
 function saveReferenceNumber(e) {
   
   e.preventDefault();
-  const referenceNumber = document.getElementById('referenceNumber').value.toUpperCase();
+  const referenceNumberElement = document.getElementById('referenceNumber');
+  const referenceNumber = referenceNumberElement.value.toUpperCase();
   const item = new Item(referenceNumber);
   saveTrackable(item);
+  referenceNumberElement.value = '';
 
 }
 
 function renderTrackItems(items) {
 
   let template = `
-    <table>
+    <table class="ui red striped table">
       <thead>
         <th>Reference Number</th>
         <th>Via</th>
@@ -80,13 +80,20 @@ function renderTrackItems(items) {
         <th>Trackpoint</th>
         <th>Tracks</th>
         <th>Next checking</th>
-        <th>Actions</th>
+        <th colspan="2">Actions</th>
       </thead>
       <tbody>
         {{lines}}
       </tbody>
       <tfoot>
-        <tr><td colspan="7"><button id="checkAll">Check all now</button></td></tr>
+        <tr>
+          <td colspan="10">
+            <button class="ui labeled icon inverted orange button" id="checkAll">
+              <i class="alarm icon"></i>
+              Check all now
+            </button>
+          </td>
+        </tr>
       </tfoot>
     </table>
   `;
@@ -97,14 +104,27 @@ function renderTrackItems(items) {
                 <td>${item.referenceNumber}</td>
                 <td>${item.via}</td>
                 <td>${formatDate(item.checkedAt)}</td>
-                <td>${item.lastStatus}</td>
+                <td><span class="ui small ${statusesClass[item.lastStatus] || 'primary'} label">${item.lastStatus}</span></td>
                 <td>${item.tracks.length ? item.tracks[0].date + ' ' + item.tracks[0].time : ''}</td>
                 <td>${item.tracks.length ? item.tracks[0].trackPoint : ''}</td>
-                <td><button class="show-track-history">show</button></td>
+                <td>
+                    <button class="ui labeled icon inverted tiny green button show-track-history">
+                      <i class="clock icon"></i>
+                      show
+                    </button>
+                </td>
                 <td>${formatDate(item.nextCheck)}</td>
                 <td>
-                  <button class="check-now">check now</button>
-                  <button class="remove-trackable">remove</button>
+                  <button class="ui labeled icon inverted orange button check-now">
+                    <i class="alarm icon"></i>
+                    check
+                  </button>
+                </td>
+                <td>
+                  <button class="ui labeled icon inverted tiny red button remove-trackable">
+                    <i class="trash icon"></i>
+                    remove
+                  </button>
                 </td>
               </tr>
             `
@@ -117,7 +137,7 @@ function renderTrackItems(items) {
   }
   else {
 
-    template = '<p>You have no item, please add one.</p>';
+    template = '<div class="ui info message"><p>You have no item, please add one.</p></div>';
   }
 
   return template;
@@ -127,8 +147,8 @@ function renderTrackItems(items) {
 function renderTrackHistory(item) {
 
   let template = `
-    <table>
-      <caption>Reference number: ${item.referenceNumber} - via: ${item.via}</caption>
+    <table class="ui red striped table">
+      <caption class="ui red header">Reference number: ${item.referenceNumber} - via: ${item.via}</caption>
       <thead>
         <th>Date</th>
         <th>Status</th>
@@ -143,7 +163,7 @@ function renderTrackHistory(item) {
   const lines = item.tracks.map( track => {
     return  `<tr>
                 <td>${track.date} ${track.time}</td>
-                <td><${track.status}/td>
+                <td><span class="ui small label">${track.status}</span></td>
                 <td>${track.trackPoint}</td>
               </tr>
             `
@@ -156,7 +176,7 @@ function renderTrackHistory(item) {
 
   else {
     
-    template = '<p>There are not tracks!</p>';
+    template = '<h3>There are no tracks!</h3>';
   }
 
   return template;
@@ -179,8 +199,9 @@ function loadTrackHistory(referenceNumber, callback) {
 }
 
 function showTrackHistory(history) {
-  // TODO: implemented a modal
-  console.log(history);
+  $('.ui.basic.modal .header').text('Tracks');
+  $('.ui.basic.modal .content').html(history);
+  $('.ui.basic.modal').modal('show');
 }
 
 function removeTrackable(referenceNumber) {

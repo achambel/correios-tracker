@@ -67,10 +67,20 @@ function trackable(html) {
   saveTrackable(item);
 
   const options = {
-    body: `Last status: ${item.lastStatus}\nChecked at: ${formatDate(item.checkedAt)}`
+    body: `Last status: ${item.lastStatus}\nChecked at: ${formatDate(item.checkedAt)}`,
+    icon: '../256x256.png'
    };
 
-   new Notification(item.referenceNumber, options);
+   chrome.storage.sync.get('settings', storage => {
+    
+    const settings = JSON.parse(storage.settings);
+    
+    if (settings.showNotification) {
+
+      new Notification(item.referenceNumber, options);
+    }
+    
+   });
 
 } 
 
@@ -132,6 +142,8 @@ function loadTrackItems() {
       $('.check-now').click( (e) => tracker(e.target.parentElement.parentElement.dataset.referenceNumber));
       $('#checkAll').click(checkAll);
     }
+
+    $(trackItems).transition('bounce');
 
   });
 

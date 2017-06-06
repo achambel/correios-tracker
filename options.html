@@ -3,50 +3,88 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css">
   </head>
-  <body>
-    <div id="message"></div>
-    <div>
-      <form id="formSaveReferenceNumber">
-        <fieldset>
-          <legend>Configure Items</legend>
-          <label for="referenceNumber">Reference Number: </label>
-          <input type="text" id="referenceNumber" maxlength="21"
-                                                  placeholder="E.g. AB586985609GB"
-                                                  pattern="[\w\d]{9,21}"
-                                                  required>
-          <button>Add</button>
-        </fieldset>
+  <body style="background: #d4d4d5;">
+    <div class="ui container">
+      <form id="formSaveReferenceNumber" class="ui form segment">
+        <img class="ui left bordered floated image" src="128x128.png">
+        <h3 class="ui dividing header">Royal Mail Tracker - Configure Items</h3>
+        <div class="inline fields">
+          <label class="label" for="referenceNumber">Reference Number: </label>
+          <div class="field">
+            <input type="text" class="input" id="referenceNumber"
+                                             maxlength="21"
+                                             placeholder="E.g. AB586985609GB"
+                                             pattern="[\w\d]{9,21}"
+                                             required>
+          </div>
+          <div class="field">
+            <button class="ui labeled icon button">
+              <i class="mail icon"></i>
+              Add
+            </button>
+          </div>
+        </div>
+
       </form>
-    </div>
+      <div id="trackItems"></div>
 
-    <div id="trackItems"></div>
+      <div class="ui segment">
+                
+        <form id="formSettings" class="ui form">
+          <h3 class="ui dividing header">Settings</h3>
+            
+          <div class="inline fields">
+            <label class="label" for="checkInterval">Ckeck for status every </label>
 
-    <hr>
+            <div class="field">
+              <input type="number" class="input" id="checkInterval" value="60" min="1" max="99" required>
+            </div>
+            
+            <div class="field">
+              <select id="checkUnitInterval" class="ui fluid dropdown">
+                <option value="minute">Minute(s)</option>
+                <option value="hour">Hour(s)</option>
+                <option value="day">Day(s)</option>
+              </select>
+            </div>
 
-    <div>
-        <form id="formSettings">
-          <fieldset>
-            <legend>Settings</legend>
-            <label for="checkInterval">Ckeck for status every </label>
-            <input type="number" id="checkInterval" value="60" min="1" max="99" required>
-            <select id="checkUnitInterval">
-              <option value="minute">Minute(s)</option>
-              <option value="hour">Hour(s)</option>
-              <option value="day">Day(s)</option>
-            </select>
-            <p>
-              <label for="showNotification">Show notification when checking is complete?</label>
-              <input type="checkbox" id="showNotification" checked>
-            </p>
-            <p>
-              <button>Save</button>
-            </p>
-          </fieldset>
+            <div class="field">
+              <div class="ui toggle checkbox">
+                <input type="checkbox" id="showNotification" checked>
+                <label class="label" for="showNotification">Show notification when checking is complete?</label>
+              </div>
+            </div>
+
+          </div>
+          
+          <button class="ui icon button">
+                  <i class="save icon"></i>
+                  Save
+                </button>
         </form>
+      </div>
+
+      <footer>
+          <p>Made with <i class="red heart icon"></i> in UK. If you consider it helpful, please 
+            <a class="ui labeled icon button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PTGY5BKMGXNHL" target="_blank">
+              <i class="pound icon"></i>
+              donate!
+            </a>
+          </p>
+
+      </footer>
+
+  </div>
+
+    <div class="ui basic modal">
+      <div class="ui header">Tracks</div>
+      <div class="content"></div>
     </div>
 
     <script src="js/vendor/jquery.min.js"></script>
+    <script src="js/vendor/semantic.min.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/options.js"></script>
     <script src="js/service.js"></script>

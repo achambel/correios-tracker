@@ -3,15 +3,27 @@
   <head>
     <meta charset="utf-8">
     <title></title>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css">
   </head>
-  <body>
-    <h1>Last checked items</h1>
-    <div id="trackItems"></div>
-    <hr>
+  <body style="width: 768px;background: #d4d4d5;">
+    <div class="ui container">
+      <img class="ui left bordered floated image" src="48x48.png">
+      <h3 class="ui header dividing">Royal Mail Tracker - Last checked items</h3>
+      <div id="trackItems"></div>
+      
+      <div class="ui divider"></div>
 
-    <div>
-      <button id="configureItems">Configure items</button>
-      <button>Donate</button>
+      <div>
+        <button id="configureItems" class="ui icon red button">
+          <i class="settings icon"></i>
+          Configure items
+        </button>
+        <a class="ui icon button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PTGY5BKMGXNHL" target="_blank">
+          <i class="pound icon"></i>
+          Donate
+          <i class="red heart icon"></i>
+        </a>
+      </div>
     </div>
 
     <script src="js/utils.js"></script>

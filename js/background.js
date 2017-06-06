@@ -1,3 +1,7 @@
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.tabs.create({'url': chrome.extension.getURL('../options.html')});
+});
+
 chrome.alarms.onAlarm.addListener(function( alarm ) {
   
   if(alarm.name === 'checkTrackerItems') {

@@ -1,7 +1,7 @@
 function renderLastTrackerItems(items) {
 
 	let template = `
-		<table>
+		<table class="ui red striped table">
 			<thead>
 				<th>Reference Number</th>
 				<th>Status</th>
@@ -18,7 +18,7 @@ function renderLastTrackerItems(items) {
 
 		return `<tr>
 					<td>${item.referenceNumber}</td>
-					<td>${item.lastStatus}</td>
+					<td><span class="ui small label">${item.lastStatus}</span></td>
 					<td>${item.tracks.length ? item.tracks[0].trackPoint : ''}</td>
                 	<td>${formatDate(item.nextCheck)}</td>
 				</tr>`
@@ -30,7 +30,7 @@ function renderLastTrackerItems(items) {
 		template = template.replace(/{{lines}}/g, lines);
 	}
 	else {
-		template = '<p>You have no item, please click on the button below to configure one.</p>';
+		template = '<div class="ui info message"><p>You have no item, please click on the button below to configure one.</p></div>';
 	}
 
   	return template;

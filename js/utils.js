@@ -19,3 +19,7 @@ function dateTimeReviver(key, value) {
     
   return value;
 }
+
+const statusesClass = {
+	Delivered: 'green'
+}
