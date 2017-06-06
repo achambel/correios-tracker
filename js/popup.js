@@ -18,7 +18,7 @@ function renderLastTrackerItems(items) {
 
 		return `<tr>
 					<td>${item.referenceNumber}</td>
-					<td><span class="ui small label">${item.lastStatus}</span></td>
+					<td><span class="ui small ${statusesClass[item.lastStatus.toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
 					<td>${item.tracks.length ? item.tracks[0].trackPoint : ''}</td>
                 	<td>${formatDate(item.nextCheck)}</td>
 				</tr>`

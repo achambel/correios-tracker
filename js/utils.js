@@ -21,5 +21,5 @@ function dateTimeReviver(key, value) {
 }
 
 const statusesClass = {
-	Delivered: 'green'
+	DELIVERED: 'green'
 }

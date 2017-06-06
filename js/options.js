@@ -104,7 +104,7 @@ function renderTrackItems(items) {
                 <td>${item.referenceNumber}</td>
                 <td>${item.via}</td>
                 <td>${formatDate(item.checkedAt)}</td>
-                <td><span class="ui small ${statusesClass[item.lastStatus] || 'primary'} label">${item.lastStatus}</span></td>
+                <td><span class="ui small ${statusesClass[item.lastStatus.toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
                 <td>${item.tracks.length ? item.tracks[0].date + ' ' + item.tracks[0].time : ''}</td>
                 <td>${item.tracks.length ? item.tracks[0].trackPoint : ''}</td>
                 <td>
@@ -163,7 +163,7 @@ function renderTrackHistory(item) {
   const lines = item.tracks.map( track => {
     return  `<tr>
                 <td>${track.date} ${track.time}</td>
-                <td><span class="ui small label">${track.status}</span></td>
+                <td><span class="ui small ${statusesClass[track.status.toUpperCase()] || 'primary'} label">${track.status}</span></td>
                 <td>${track.trackPoint}</td>
               </tr>
             `
