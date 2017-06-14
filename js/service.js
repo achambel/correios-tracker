@@ -3,7 +3,6 @@ const Item = function(referenceNumber) {
   return {
     referenceNumber: referenceNumber,
     lastStatus: '',
-    via: '',
     tracks: [],
     checkedAt: '',
     nextCheck: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes()),
@@ -30,44 +29,38 @@ const Item = function(referenceNumber) {
 
 function trackerCallback(response) {
 
-  const html = $.parseHTML(response);
-  trackable(html);
+  trackable(response);
 
 }
 
-function trackable(html) {
+function trackable(response) {
   
-  const referenceNumber = $(html).find('dl.tnt-block-parcel dd').text();
-  const lastStatus = $(html).find("dd.tnt-item-status").text();
-  const via = $(html).find('dl.tnt-block-service dd span.description').text('').parent().text().trim();
-  const history = $(html).find('table.tnt-tracking-history tbody tr');
   let tracks = [];
+  const orderedHistory = response.historico.sort( (a, b) => strDateBRToISODate(a.data) - strDateBRToISODate(b.data) );
 
-  $(history).each( (index, tr) => {
-
+  for (let i=orderedHistory.length-1; i>=0; i--) {
+    
     let track = {
-
-        date: $(tr).find('td:eq(0)').text(),
-        time: $(tr).find('td:eq(1)').text(),
-        status: $(tr).find('td:eq(2)').text(),
-        trackPoint: $(tr).find('td:eq(3)').text()
+      
+      date: orderedHistory[i].data,
+      details: orderedHistory[i].detalhes,
+      place: orderedHistory[i].local,
+      status: orderedHistory[i].situacao
 
     };
 
     tracks.push(track);
+  }
 
-  });
-
-  let item = new Item(referenceNumber);
-  item.lastStatus = lastStatus;
+  let item = new Item(response.codigo);
+  item.lastStatus = tracks[0].status;
   item.checkedAt = new Date();
-  item.via = via;
   item.tracks = tracks;
 
   saveTrackable(item);
 
   const options = {
-    body: `Last status: ${item.lastStatus}\nChecked at: ${formatDate(item.checkedAt)}`,
+    body: `Último status: ${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
     icon: '../256x256.png'
    };
 
@@ -84,12 +77,29 @@ function trackable(html) {
 
 } 
 
+function trackerFailCallback(fail, referenceNumber) {
+
+  if (fail.status === 404) {
+    let item = new Item(referenceNumber);
+    item.lastStatus = 'Objeto não encontrado';
+    item.checkedAt = new Date();
+    saveTrackable(item);
+
+    const options = {
+      body: `${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
+      icon: '../256x256.png'
+     };
+
+     new Notification(item.referenceNumber, options);
+  }
+
+}
+
 function tracker(referenceNumber) {
 
-  const url = "https://www.royalmail.com/business/track-your-item";
-  const data = {"parcel_tracking_number": referenceNumber};
+  const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`;
 
-  $.get(url, data, trackerCallback);
+  $.get(url, trackerCallback).fail( (f) => trackerFailCallback(f, referenceNumber) );
 
 }
 

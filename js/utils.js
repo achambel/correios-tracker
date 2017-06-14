@@ -20,6 +20,18 @@ function dateTimeReviver(key, value) {
   return value;
 }
 
+function strDateBRToISODate(str) {
+  
+  const arr = str.split(" ");
+  
+  return Date.parse(
+      arr[0]
+        .split("/")
+        .reverse()
+        .join("-") + "T" + arr[1]);
+
+}
+
 const statusesClass = {
-	DELIVERED: 'green'
+	OBJETO_ENTREGUE_AO_DESTINATÁRIO: 'green'
 }

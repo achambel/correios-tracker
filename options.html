@@ -8,21 +8,21 @@
   <body style="background: #d4d4d5;">
     <div class="ui container">
       <form id="formSaveReferenceNumber" class="ui form segment">
-        <img class="ui left bordered floated image" src="128x128.png">
-        <h3 class="ui dividing header">Royal Mail Tracker - Configure Items</h3>
+        <img class="ui left floated image" src="128x128.png">
+        <h3 class="ui dividing header">Correios Tracker - Configurar Objetos</h3>
         <div class="inline fields">
-          <label class="label" for="referenceNumber">Reference Number: </label>
+          <label class="label" for="referenceNumber">Número do objeto: </label>
           <div class="field">
             <input type="text" class="input" id="referenceNumber"
                                              maxlength="21"
-                                             placeholder="E.g. AB586985609GB"
+                                             placeholder="Ex.AA100833276BR"
                                              pattern="[\w\d]{9,21}"
                                              required>
           </div>
           <div class="field">
             <button class="ui labeled icon button">
               <i class="mail icon"></i>
-              Add
+              Adicionar
             </button>
           </div>
         </div>
@@ -33,10 +33,10 @@
       <div class="ui segment">
                 
         <form id="formSettings" class="ui form">
-          <h3 class="ui dividing header">Settings</h3>
+          <h3 class="ui dividing header">Configurações</h3>
             
           <div class="inline fields">
-            <label class="label" for="checkInterval">Ckeck for status every </label>
+            <label class="label" for="checkInterval">Verificar status a cada </label>
 
             <div class="field">
               <input type="number" class="input" id="checkInterval" value="60" min="1" max="99" required>
@@ -44,16 +44,16 @@
             
             <div class="field">
               <select id="checkUnitInterval" class="ui fluid dropdown">
-                <option value="minute">Minute(s)</option>
-                <option value="hour">Hour(s)</option>
-                <option value="day">Day(s)</option>
+                <option value="minute">Minuto(s)</option>
+                <option value="hour">Hora(s)</option>
+                <option value="day">Dia(s)</option>
               </select>
             </div>
 
             <div class="field">
               <div class="ui toggle checkbox">
                 <input type="checkbox" id="showNotification" checked>
-                <label class="label" for="showNotification">Show notification when checking is complete?</label>
+                <label class="label" style="cursor: pointer;" for="showNotification">Mostrar notificação quando completar a verificação?</label>
               </div>
             </div>
 
@@ -61,19 +61,17 @@
           
           <button class="ui icon button">
                   <i class="save icon"></i>
-                  Save
+                  Salvar
                 </button>
         </form>
       </div>
 
       <footer>
-          <p>Made with <i class="red heart icon"></i> in UK. If you consider it helpful, please 
-            <a class="ui labeled icon button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=PTGY5BKMGXNHL" target="_blank">
-              <i class="pound icon"></i>
-              donate!
+          <p>Feito with <i class="red heart icon"></i>.Se você considera esta ferramenta útil, por favor <a class="ui labeled icon button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
+              <i class="dollar icon"></i>
+              doe!
             </a>
           </p>
-
       </footer>
 
   </div>

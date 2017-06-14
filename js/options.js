@@ -48,8 +48,8 @@ function saveSettings(e) {
 
   chrome.storage.sync.set({'settings': JSON.stringify(settings)}, function() {
 
-    $('.ui.basic.modal .header').text('Message');
-    $('.ui.basic.modal .content').html('<h3>The settings have been successfully saved!</h3>');
+    $('.ui.basic.modal .header').text('Mensagem');
+    $('.ui.basic.modal .content').html('<h3>As configurações foram salvas com sucesso e surtirão efeito na próxima verificação!</h3>');
     $('.ui.basic.modal').modal('show');
 
   });
@@ -72,25 +72,24 @@ function renderTrackItems(items) {
   let template = `
     <table class="ui red striped table">
       <thead>
-        <th>Reference Number</th>
-        <th>Via</th>
-        <th>Checked at</th>
+        <th>Objeto</th>
+        <th>Verificado às</th>
         <th>Status</th>
-        <th>Date</th>
-        <th>Trackpoint</th>
-        <th>Tracks</th>
-        <th>Next checking</th>
-        <th colspan="2">Actions</th>
+        <th>Data</th>
+        <th>Local</th>
+        <th>Histórico</th>
+        <th>Próxima verificação</th>
+        <th colspan="2" class="center aligned">Ações</th>
       </thead>
       <tbody>
         {{lines}}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="10">
+          <td colspan="9">
             <button class="ui labeled icon inverted orange button" id="checkAll">
               <i class="alarm icon"></i>
-              Check all now
+              Verificar todos agora
             </button>
           </td>
         </tr>
@@ -102,28 +101,27 @@ function renderTrackItems(items) {
     
     return  ` <tr data-reference-number="${item.referenceNumber}">
                 <td>${item.referenceNumber}</td>
-                <td>${item.via}</td>
                 <td>${formatDate(item.checkedAt)}</td>
-                <td><span class="ui small ${statusesClass[item.lastStatus.toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
-                <td>${item.tracks.length ? item.tracks[0].date + ' ' + item.tracks[0].time : ''}</td>
-                <td>${item.tracks.length ? item.tracks[0].trackPoint : ''}</td>
+                <td><span class="ui small ${statusesClass[item.lastStatus.split(' ').join('_').toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
+                <td>${item.tracks.length ? item.tracks[0].date : ''}</td>
+                <td>${item.tracks.length ? item.tracks[0].place : ''}</td>
                 <td>
                     <button class="ui labeled icon inverted tiny green button show-track-history">
                       <i class="clock icon"></i>
-                      show
+                      mostrar
                     </button>
                 </td>
                 <td>${formatDate(item.nextCheck)}</td>
                 <td>
                   <button class="ui labeled icon inverted orange button check-now">
                     <i class="alarm icon"></i>
-                    check
+                    verificar
                   </button>
                 </td>
                 <td>
                   <button class="ui labeled icon inverted tiny red button remove-trackable">
                     <i class="trash icon"></i>
-                    remove
+                    remover
                   </button>
                 </td>
               </tr>
@@ -137,7 +135,7 @@ function renderTrackItems(items) {
   }
   else {
 
-    template = '<div class="ui info message"><p>You have no item, please add one.</p></div>';
+    template = '<div class="ui info message"><p>Não há Objeto a rastrear ainda, por favor adicione um.</p></div>';
   }
 
   return template;
@@ -148,11 +146,11 @@ function renderTrackHistory(item) {
 
   let template = `
     <table class="ui red striped table">
-      <caption class="ui red header">Reference number: ${item.referenceNumber} - via: ${item.via}</caption>
+      <caption class="ui red header">Número do Objeto: ${item.referenceNumber}</caption>
       <thead>
-        <th>Date</th>
+        <th>Data</th>
         <th>Status</th>
-        <th>Trackpoint</th>
+        <th>Local</th>
       </thead>
       <tbody>
         {{lines}}
@@ -162,9 +160,13 @@ function renderTrackHistory(item) {
 
   const lines = item.tracks.map( track => {
     return  `<tr>
-                <td>${track.date} ${track.time}</td>
-                <td><span class="ui small ${statusesClass[track.status.toUpperCase()] || 'primary'} label">${track.status}</span></td>
-                <td>${track.trackPoint}</td>
+                <td>${track.date}</td>
+                <td>
+                  <span class="ui small ${statusesClass[track.status.split(' ').join('_').toUpperCase()] || 'primary'} label">
+                    ${track.status}
+                  </span>
+                </td>
+                <td>${track.place}</td>
               </tr>
             `
   }).join('');
@@ -176,7 +178,7 @@ function renderTrackHistory(item) {
 
   else {
     
-    template = '<h3>There are no tracks!</h3>';
+    template = '<h3>Não há histórico ainda!</h3>';
   }
 
   return template;
@@ -199,7 +201,7 @@ function loadTrackHistory(referenceNumber, callback) {
 }
 
 function showTrackHistory(history) {
-  $('.ui.basic.modal .header').text('Tracks');
+  $('.ui.basic.modal .header').text('Histórico');
   $('.ui.basic.modal .content').html(history);
   $('.ui.basic.modal').modal('show');
 }
