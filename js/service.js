@@ -1,7 +1,8 @@
-const Item = function(referenceNumber) {
-  
+const Item = function(referenceNumber, referenceDescription) {
+
   return {
     referenceNumber: referenceNumber,
+    referenceDescription: referenceDescription,
     lastStatus: '',
     tracks: [],
     checkedAt: '',
@@ -34,14 +35,14 @@ function trackerCallback(response) {
 }
 
 function trackable(response) {
-  
+
   let tracks = [];
   const orderedHistory = response.historico.sort( (a, b) => strDateBRToISODate(a.data) - strDateBRToISODate(b.data) );
 
   for (let i=orderedHistory.length-1; i>=0; i--) {
-    
+
     let track = {
-      
+
       date: orderedHistory[i].data,
       details: orderedHistory[i].detalhes,
       place: orderedHistory[i].local,
@@ -65,17 +66,17 @@ function trackable(response) {
    };
 
    chrome.storage.sync.get('settings', storage => {
-    
+
     const settings = JSON.parse(storage.settings);
-    
+
     if (settings.showNotification) {
 
-      new Notification(item.referenceNumber, options);
+      new Notification(`${item.referenceNumber} (${item.referenceDescription})`, options);
     }
-    
+
    });
 
-} 
+}
 
 function trackerFailCallback(fail, referenceNumber) {
 
@@ -120,9 +121,9 @@ function saveTrackable(item) {
     const itemExists = trackItems.findIndex(oldItem => oldItem.referenceNumber === item.referenceNumber);
 
     if(itemExists >= 0) {
-
+      item.referenceDescription = trackItems[itemExists].referenceDescription
       trackItems[itemExists] = item;
-    } 
+    }
     else {
       trackItems.push(item);
    }
@@ -139,7 +140,7 @@ function saveTrackable(item) {
 }
 
 function loadTrackItems() {
-  
+
   getTrackItems().then( items => {
 
     const trackItems = document.getElementById('trackItems');
@@ -165,7 +166,7 @@ function checkAll() {
 
     items.forEach( item => tracker(item.referenceNumber) );
   });
-  
+
 
 }
 
@@ -174,15 +175,15 @@ function getTrackItems() {
   const promise = new Promise( (resolve, reject) => {
 
     let trackItems = [];
-    
+
     chrome.storage.sync.get('trackItems', storage => {
-      
+
       if(storage.hasOwnProperty('trackItems')) {
 
         trackItems = JSON.parse(storage.trackItems, dateTimeReviver);
-        
+
       }
-      
+
       resolve(trackItems);
 
     });

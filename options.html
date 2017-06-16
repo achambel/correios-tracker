@@ -8,22 +8,40 @@
   <body style="background: #d4d4d5;">
     <div class="ui container">
       <form id="formSaveReferenceNumber" class="ui form segment">
-        <img class="ui left floated image" src="128x128.png">
-        <h3 class="ui dividing header">Correios Tracker - Configurar Objetos</h3>
-        <div class="inline fields">
-          <label class="label" for="referenceNumber">Número do objeto: </label>
-          <div class="field">
-            <input type="text" class="input" id="referenceNumber"
+        <div class="ui items">
+          <div class="item">
+            <div class="ui image">
+              <img src="128x128.png">
+            </div>
+            <div class="middle aligned content">
+              <div class="ui">
+                <h3 class="ui dividing header">Correios Tracker - Configurar Objetos</h3>
+                <div class="three fields">
+                  <div class="field">
+                    <label for="referenceNumber">Número do objeto: </label>
+                    <input type="text" class="input" id="referenceNumber"
                                              maxlength="21"
                                              placeholder="Ex.AA100833276BR"
                                              pattern="[\w\d]{9,21}"
                                              required>
-          </div>
-          <div class="field">
-            <button class="ui labeled icon button">
-              <i class="mail icon"></i>
-              Adicionar
-            </button>
+                  </div>
+                  <div for="referenceDescription" class="field">
+                    <label>Descrição do objeto: </label>
+                    <input type="text" class="input" id="referenceDescription"
+                                             maxlength="64"
+                                             placeholder="Livro - Submarino"
+                                             required>
+                  </div>
+                  <div class="field">
+                    <label>&nbsp;</label>
+                    <button class="ui labeled icon button">
+                      <i class="mail icon"></i>
+                      Adicionar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -31,17 +49,17 @@
       <div id="trackItems"></div>
 
       <div class="ui segment">
-                
+
         <form id="formSettings" class="ui form">
           <h3 class="ui dividing header">Configurações</h3>
-            
+
           <div class="inline fields">
             <label class="label" for="checkInterval">Verificar status a cada </label>
 
             <div class="field">
               <input type="number" class="input" id="checkInterval" value="60" min="1" max="99" required>
             </div>
-            
+
             <div class="field">
               <select id="checkUnitInterval" class="ui fluid dropdown">
                 <option value="minute">Minuto(s)</option>
@@ -58,7 +76,7 @@
             </div>
 
           </div>
-          
+
           <button class="ui icon button">
                   <i class="save icon"></i>
                   Salvar

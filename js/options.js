@@ -22,11 +22,11 @@ function initializeSettings() {
 }
 
 function loadSettings() {
-  
+
   chrome.storage.sync.get('settings', (storage) => {
 
     if(storage.hasOwnProperty(defaultSettings.name)) {
-      
+
       const settings = JSON.parse(storage.settings);
       document.getElementById('checkInterval').value = settings.checkInterval;
       document.querySelector(`#checkUnitInterval option[value=${settings.checkUnitInterval}]`).selected = true;
@@ -57,13 +57,16 @@ function saveSettings(e) {
 }
 
 function saveReferenceNumber(e) {
-  
+
   e.preventDefault();
   const referenceNumberElement = document.getElementById('referenceNumber');
   const referenceNumber = referenceNumberElement.value.toUpperCase();
-  const item = new Item(referenceNumber);
+  const referenceDescriptionElement = document.getElementById('referenceDescription');
+  const referenceDescription = referenceDescriptionElement.value;
+  const item = new Item(referenceNumber, referenceDescription);
   saveTrackable(item);
   referenceNumberElement.value = '';
+  referenceDescriptionElement.value = '';
 
 }
 
@@ -98,9 +101,9 @@ function renderTrackItems(items) {
   `;
 
   const lines = items.map( item => {
-    
+
     return  ` <tr data-reference-number="${item.referenceNumber}">
-                <td>${item.referenceNumber}</td>
+                <td>${item.referenceNumber} (${item.referenceDescription})</td>
                 <td>${formatDate(item.checkedAt)}</td>
                 <td><span class="ui small ${statusesClass[item.lastStatus.split(' ').join('_').toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
                 <td>${item.tracks.length ? item.tracks[0].date : ''}</td>
@@ -131,7 +134,7 @@ function renderTrackItems(items) {
   if(lines) {
 
     template = template.replace(/{{lines}}/g, lines);
-    
+
   }
   else {
 
@@ -177,7 +180,7 @@ function renderTrackHistory(item) {
   }
 
   else {
-    
+
     template = '<h3>Não há histórico ainda!</h3>';
   }
 
@@ -188,9 +191,9 @@ function renderTrackHistory(item) {
 function loadTrackHistory(referenceNumber, callback) {
 
   getTrackItems().then( items => {
-  
+
     const itemFiltered = items.filter(item => item.referenceNumber === referenceNumber);
-  
+
     if(itemFiltered.length) {
 
       if (typeof callback === 'function') callback(renderTrackHistory(itemFiltered[0]));
@@ -212,14 +215,14 @@ function removeTrackable(referenceNumber) {
 
     const trackItems = JSON.parse(storage.trackItems);
     const itemIndex = trackItems.findIndex(oldItem => oldItem.referenceNumber === referenceNumber);
-    
+
     if(itemIndex >= 0) {
 
       trackItems.splice(itemIndex, 1);
       const save = {'trackItems': JSON.stringify(trackItems)};
-      chrome.storage.sync.set(save, loadTrackItems);    
+      chrome.storage.sync.set(save, loadTrackItems);
     }
-    
+
   })
 
 }
