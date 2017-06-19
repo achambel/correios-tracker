@@ -149,7 +149,7 @@ function renderTrackHistory(item) {
 
   let template = `
     <table class="ui red striped table">
-      <caption class="ui red header">Número do Objeto: ${item.referenceNumber}</caption>
+      <caption class="ui red header">Número do Objeto: ${item.referenceNumber} (${item.referenceDescription})</caption>
       <thead>
         <th>Data</th>
         <th>Status</th>

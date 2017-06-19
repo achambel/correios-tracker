@@ -8,3 +8,14 @@ This is an chrome extension that provides the functionality to enquire on the tr
 ![](screenshots/configure-items.png?raw=true)
 
 ![](screenshots/tracks.png?raw=true)
+
+## Contributing
+
+Once you've made your great commits:
+
+1. [Fork](http://help.github.com/forking/) correios-tracker
+2. Create a branch with a clear name
+3. Make your changes (Please also add/change README and CHANGELOG if applicable)
+4. Push changes to the created branch
+5. [Create an Pull Request](http://github.com/achambel/correios-tracker/pulls)
+6. That's it!
