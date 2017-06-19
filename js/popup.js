@@ -18,7 +18,7 @@ function renderLastTrackerItems(items) {
 	const lines = items.map( item => {
 
 		return `<tr>
-					<td>${item.referenceNumber}</td>
+					<td>${item.referenceNumber} (${item.referenceDescription})</td>
 					<td><span class="ui small ${statusesClass[item.lastStatus.split(' ').join('_').toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
 					<td>${item.tracks.length ? item.tracks[0].date : ''}</td>
 					<td>${item.tracks.length ? item.tracks[0].place : ''}</td>
@@ -28,7 +28,7 @@ function renderLastTrackerItems(items) {
 	}).join('');
 
 	if(lines) {
-		
+
 		template = template.replace(/{{lines}}/g, lines);
 	}
 	else {
@@ -40,7 +40,7 @@ function renderLastTrackerItems(items) {
 }
 
 function loadLastTrackerItems() {
-	
+
 	getTrackItems().then( (items) => {
 
 		document.getElementById('trackItems').innerHTML = renderLastTrackerItems(items);
