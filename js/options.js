@@ -154,6 +154,7 @@ function renderTrackHistory(item) {
         <th>Data</th>
         <th>Status</th>
         <th>Local</th>
+        <th>Detalhes</th>
       </thead>
       <tbody>
         {{lines}}
@@ -170,6 +171,7 @@ function renderTrackHistory(item) {
                   </span>
                 </td>
                 <td>${track.place}</td>
+                <td>${track.details}</td>
               </tr>
             `
   }).join('');
