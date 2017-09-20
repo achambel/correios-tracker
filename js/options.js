@@ -2,23 +2,42 @@ const defaultSettings = {
     name: 'settings',
     value: JSON.stringify(
       {
-            checkInterval: 60,
-            checkUnitInterval: 'minute',
-            showNotification: true
+        checkInterval: 60,
+        checkUnitInterval: 'minute',
+        showNotification: true,
+        checkRange: generateHourRange()
       }
     )
 };
 
 function initializeSettings() {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(null, (storage) => {
 
-  chrome.storage.sync.get(null, (storage) => {
-
-    if(!storage.hasOwnProperty(defaultSettings.name)) {
+      if (!storage.hasOwnProperty(defaultSettings.name)) {
         const settings = { 'settings': defaultSettings.value };
         chrome.storage.sync.set(settings);
-    }
+        resolve(settings)
+      }
+      else {
+        chrome.storage.sync.get('settings', storage => {
+          
+          const settings = JSON.parse(storage.settings);
+          const _default = JSON.parse(defaultSettings.value);
 
+          Object.keys(_default).forEach(k => {
+            if(!settings.hasOwnProperty(k))
+              settings[k] = _default[k]
+          });
+          
+          chrome.storage.sync.set({'settings': JSON.stringify(settings)});
+          resolve(settings)
+        });
+      }
+
+    });
   });
+  
 }
 
 function loadSettings() {
@@ -31,6 +50,7 @@ function loadSettings() {
       document.getElementById('checkInterval').value = settings.checkInterval;
       document.querySelector(`#checkUnitInterval option[value=${settings.checkUnitInterval}]`).selected = true;
       document.getElementById('showNotification').checked = settings.showNotification;
+      renderRangeOptions(settings.checkRange);
     }
 
   });
@@ -43,7 +63,8 @@ function saveSettings(e) {
   const settings = {
       checkInterval: parseInt(document.getElementById('checkInterval').value),
       checkUnitInterval: document.getElementById('checkUnitInterval').value,
-      showNotification: document.getElementById('showNotification').checked
+      showNotification: document.getElementById('showNotification').checked,
+      checkRange: [].map.call(document.getElementById('range').selectedOptions, ele => parseInt(ele.value))
   };
 
   chrome.storage.sync.set({'settings': JSON.stringify(settings)}, function() {
@@ -229,9 +250,37 @@ function removeTrackable(referenceNumber) {
 
 }
 
+function renderRangeOptions(checkRange) {
+  
+  let options = []
+  
+  generateHourRange().forEach(hour => {
+    const hourFormatted = hour.toString().padStart(2, '0');
+    const selected = checkRange.indexOf(hour) >= 0;
+
+    options.push(`<option value="${hour}" ${selected ? 'selected' : ''}>${hourFormatted}h</option>`);
+  });
+
+  const select = document.getElementById('range');
+  select.innerHTML = options.join('');
+}
+
+function generateHourRange() {
+  
+  let hours = [];
+
+  for (let i=0; i<24; i++) {
+    hours.push(i);
+  }
+
+  return hours;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  initializeSettings();
-  loadSettings();
+  initializeSettings().then(settings => {
+    loadSettings();
+  });
+  
   loadTrackItems();
 });
 

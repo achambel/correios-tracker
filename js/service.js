@@ -4,6 +4,7 @@ const Item = function(referenceNumber, referenceDescription) {
     referenceNumber: referenceNumber,
     referenceDescription: referenceDescription,
     lastStatus: '',
+    statusChanged: false,
     tracks: [],
     checkedAt: '',
     nextCheck: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes()),
@@ -61,7 +62,7 @@ function trackable(response) {
   saveTrackable(item);
 
   const options = {
-    body: `Último status: ${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
+    body: `Status: ${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
     icon: '../256x256.png'
    };
 
@@ -69,8 +70,7 @@ function trackable(response) {
 
     const settings = JSON.parse(storage.settings);
 
-    if (settings.showNotification) {
-
+    if (settings.showNotification && item.statusChanged) {
       new Notification(`${item.referenceNumber} (${item.referenceDescription})`, options);
     }
 
@@ -97,10 +97,23 @@ function trackerFailCallback(fail, referenceNumber) {
 }
 
 function tracker(referenceNumber) {
+  
+  chrome.storage.sync.get('settings', storage => {
+    
+    const settings = JSON.parse(storage.settings);
+    const now = new Date();
+    
+    if (!settings.checkRange.includes(now.getHours())) {
+      console.info(`Horário ${now.toLocaleString()} está restrito para verificacao.
+      Configurado para permitir apenas nessas horas: ${settings.checkRange.join(', ')}`);
+      return; 
+    }
 
-  const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`;
+    const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`;
 
-  $.get(url, trackerCallback).fail( (f) => trackerFailCallback(f, referenceNumber) );
+    $.get(url, trackerCallback).fail( (f) => trackerFailCallback(f, referenceNumber) );
+
+  });
 
 }
 
@@ -122,6 +135,7 @@ function saveTrackable(item) {
 
     if(itemExists >= 0) {
       item.referenceDescription = trackItems[itemExists].referenceDescription
+      item.statusChanged = trackItems[itemExists].lastStatus != item.lastStatus
       trackItems[itemExists] = item;
     }
     else {

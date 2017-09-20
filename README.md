@@ -17,5 +17,5 @@ Once you've made your great commits:
 2. Create a branch with a clear name
 3. Make your changes (Please also add/change README and CHANGELOG if applicable)
 4. Push changes to the created branch
-5. [Create an Pull Request](http://github.com/achambel/correios-tracker/pulls)
+5. [Create a Pull Request](http://github.com/achambel/correios-tracker/pulls)
 6. That's it!
