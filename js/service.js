@@ -1,4 +1,6 @@
 const Item = function(referenceNumber, referenceDescription) {
+  
+  const now = new Date();
 
   return {
     referenceNumber: referenceNumber,
@@ -8,7 +10,7 @@ const Item = function(referenceNumber, referenceDescription) {
     tracks: [],
     checkedAt: '',
     checkRestriction: false,
-    nextCheck: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes()),
+    nextCheck: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes()),
     setNextCheck: function(settings) {
 
       const baseDate = this.checkedAt || new Date();
