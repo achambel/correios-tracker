@@ -7,6 +7,7 @@ const Item = function(referenceNumber, referenceDescription) {
     statusChanged: false,
     tracks: [],
     checkedAt: '',
+    checkRestriction: false,
     nextCheck: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate(), new Date().getHours(), new Date().getMinutes()),
     setNextCheck: function(settings) {
 
@@ -97,16 +98,22 @@ function trackerFailCallback(fail, referenceNumber) {
 }
 
 function tracker(referenceNumber) {
-  
+
   chrome.storage.sync.get('settings', storage => {
-    
+
     const settings = JSON.parse(storage.settings);
     const now = new Date();
-    
+
     if (!settings.checkRange.includes(now.getHours())) {
-      console.info(`Horário ${now.toLocaleString()} está restrito para verificacao.
-      Configurado para permitir apenas nessas horas: ${settings.checkRange.join(', ')}`);
-      return; 
+
+      const restrictions = settings.checkRange.join(', ');
+
+      console.info(`Horário ${now.toLocaleString()} está restrito para verificação.
+      Configurado para permitir apenas nessas horas: ${restrictions}`);
+
+      updateItemWithRestriction(referenceNumber);
+
+      return;
     }
 
     const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`;
@@ -117,6 +124,21 @@ function tracker(referenceNumber) {
 
 }
 
+function updateItemWithRestriction(referenceNumber) {
+  chrome.storage.sync.get('trackItems', storage => {
+
+    const items = JSON.parse(storage.trackItems);
+    let item = items.find(i => i.referenceNumber === referenceNumber);
+
+    if (item) {
+      item.checkedAt = new Date();
+      item.checkRestriction = true;
+      saveTrackable(item);
+    }
+
+  });
+}
+
 function saveTrackable(item) {
 
   chrome.storage.sync.get(null, (storage) => {
@@ -124,7 +146,9 @@ function saveTrackable(item) {
     const settings = JSON.parse(storage.settings);
     let trackItems = [];
 
-    item.setNextCheck(settings);
+    if (typeof item.setNextCheck === 'function') {
+      item.setNextCheck(settings);
+    }
 
     if(storage.hasOwnProperty('trackItems')) {
 

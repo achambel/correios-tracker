@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <title></title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css">
+    <style>
+      .check-restriction {
+        text-decoration: line-through;
+        color: lightgray;
+      }
+    </style>
   </head>
   <body style="background: #d4d4d5;">
     <div class="ui container">
@@ -48,10 +54,20 @@
       </form>
       <div id="trackItems"></div>
 
-      <div class="ui segment">
+      <br>
 
+      <div class="ui styled fluid accordion">
+        <div class="active title">
+          <i class="dropdown icon"></i>
+          Configurações - Última atualização ocorreu em
+          <a class="ui label">
+            <i class="calendar icon"></i>
+            <span id="settingsLastUpdated"></span>
+          </a>
+        </div>
+
+        <div class="active content">
         <form id="formSettings" class="ui form">
-          <h3 class="ui dividing header">Configurações</h3>
 
           <div class="inline fields">
             <label class="label" for="checkInterval">Verificar status a cada </label>
@@ -89,12 +105,15 @@
                   Salvar
                 </button>
         </form>
+        </div>
       </div>
 
+      <br>
+
       <footer>
-          <p>Feito com <i class="red heart icon"></i>.Se você considera esta ferramenta útil, por favor <a class="ui labeled icon button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
+          <p>Feito com <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
               <i class="dollar icon"></i>
-              doe!
+              DOE!
             </a>
           </p>
       </footer>

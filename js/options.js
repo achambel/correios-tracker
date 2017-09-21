@@ -5,7 +5,8 @@ const defaultSettings = {
         checkInterval: 60,
         checkUnitInterval: 'minute',
         showNotification: true,
-        checkRange: generateHourRange()
+        checkRange: generateHourRange(),
+        lastUpdated: new Date()
       }
     )
 };
@@ -21,7 +22,7 @@ function initializeSettings() {
       }
       else {
         chrome.storage.sync.get('settings', storage => {
-          
+
           const settings = JSON.parse(storage.settings);
           const _default = JSON.parse(defaultSettings.value);
 
@@ -29,7 +30,7 @@ function initializeSettings() {
             if(!settings.hasOwnProperty(k))
               settings[k] = _default[k]
           });
-          
+
           chrome.storage.sync.set({'settings': JSON.stringify(settings)});
           resolve(settings)
         });
@@ -37,7 +38,7 @@ function initializeSettings() {
 
     });
   });
-  
+
 }
 
 function loadSettings() {
@@ -46,11 +47,12 @@ function loadSettings() {
 
     if(storage.hasOwnProperty(defaultSettings.name)) {
 
-      const settings = JSON.parse(storage.settings);
+      const settings = JSON.parse(storage.settings, dateTimeReviver);
       document.getElementById('checkInterval').value = settings.checkInterval;
       document.querySelector(`#checkUnitInterval option[value=${settings.checkUnitInterval}]`).selected = true;
       document.getElementById('showNotification').checked = settings.showNotification;
       renderRangeOptions(settings.checkRange);
+      document.getElementById('settingsLastUpdated').textContent = settings.lastUpdated.toLocaleString();
     }
 
   });
@@ -64,8 +66,11 @@ function saveSettings(e) {
       checkInterval: parseInt(document.getElementById('checkInterval').value),
       checkUnitInterval: document.getElementById('checkUnitInterval').value,
       showNotification: document.getElementById('showNotification').checked,
-      checkRange: [].map.call(document.getElementById('range').selectedOptions, ele => parseInt(ele.value))
+      checkRange: [].map.call(document.getElementById('range').selectedOptions, ele => parseInt(ele.value)),
+      lastUpdated: new Date()
   };
+
+  document.getElementById('settingsLastUpdated').textContent = settings.lastUpdated.toLocaleString();
 
   chrome.storage.sync.set({'settings': JSON.stringify(settings)}, function() {
 
@@ -125,7 +130,8 @@ function renderTrackItems(items) {
 
     return  ` <tr data-reference-number="${item.referenceNumber}">
                 <td>${item.referenceNumber} (${item.referenceDescription})</td>
-                <td>${formatDate(item.checkedAt)}</td>
+                <td class="${item.checkRestriction ? 'check-restriction' : ''}"
+                  title="${item.checkRestriction ? 'Não verificado porque havia restrição de hora configurada' : ''}">${formatDate(item.checkedAt)}</td>
                 <td><span class="ui small ${statusesClass[item.lastStatus.split(' ').join('_').toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
                 <td>${item.tracks.length ? item.tracks[0].date : ''}</td>
                 <td>${item.tracks.length ? item.tracks[0].place : ''}</td>
@@ -251,9 +257,9 @@ function removeTrackable(referenceNumber) {
 }
 
 function renderRangeOptions(checkRange) {
-  
+
   let options = []
-  
+
   generateHourRange().forEach(hour => {
     const hourFormatted = hour.toString().padStart(2, '0');
     const selected = checkRange.indexOf(hour) >= 0;
@@ -266,7 +272,7 @@ function renderRangeOptions(checkRange) {
 }
 
 function generateHourRange() {
-  
+
   let hours = [];
 
   for (let i=0; i<24; i++) {
@@ -280,7 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeSettings().then(settings => {
     loadSettings();
   });
-  
+
   loadTrackItems();
 });
 
@@ -293,4 +299,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     loadTrackItems();
   }
 
-})
+});
+
+$('.ui.accordion').accordion();
