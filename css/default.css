@@ -1,0 +1,41 @@
+body {
+  background: #d4d4d5;
+}
+
+.check-restriction {
+  text-decoration: line-through;
+  color: lightgray;
+}
+
+.ui.table tr {
+  transition: 2s linear all;
+}
+
+.recently-updated {
+  background: #e3ac27!important;
+  color: #3E2723!important;
+  font-weight: bold;
+  transition: none;
+}
+
+footer {
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  padding: 3px;
+  height: 55px;
+  text-align: center;
+  border-radius: .28571429rem;
+  box-shadow: 0 1px 2px 0 rgba(34,36,38,.15), 0 0 0 1px rgba(34,36,38,.15);
+}
+
+#footerLeft {
+  margin: 7px;
+  float: left;
+}
+
+#footerRight {
+  float: right;
+  margin: 15px;
+}

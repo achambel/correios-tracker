@@ -27,29 +27,24 @@ function renderLastTrackerItems(items) {
 
 	}).join('');
 
-	if(lines) {
-
-		template = template.replace(/{{lines}}/g, lines);
+	if (lines) {
+		template = template.replace(/{{lines}}/g, lines)
+	} else {
+		template = noObjects()
 	}
-	else {
-		template = '<div class="ui info message"><p>Não há objetos a rastrear ainda, por favor click no botão abaixo para configurar um.</p></div>';
-	}
-
-  	return template;
-
+  	return template
 }
 
-function loadLastTrackerItems() {
-
-	getTrackItems().then( (items) => {
-
-		document.getElementById('trackItems').innerHTML = renderLastTrackerItems(items);
-	});
+async function loadLastTrackerItems () {
+	const items = await getItems()
+	document.getElementById('trackItems').innerHTML = renderLastTrackerItems(items)
+	const settings = await getSettings()
+	applyTheme(settings.darkTheme)
 }
 
 
 document.getElementById('configureItems').addEventListener('click', () => {
-	chrome.tabs.create({'url': chrome.extension.getURL('../options.html')});
+	openOptionsTab()
 });
 
-loadLastTrackerItems();
+loadLastTrackerItems()

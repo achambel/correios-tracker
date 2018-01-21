@@ -1,0 +1,84 @@
+::selection {
+  background: #f2711c;
+  color: #fff;
+}
+
+body {
+  background: #303030;
+  color: #fff;
+}
+
+.ui.form input[type=text] {
+  background: #303030;
+  color: #fff;
+}
+
+.ui.form input[type=text]:focus {
+  color: #fff;
+  border-color: #f2711c;
+  background: #0006;
+}
+
+.ui.table {
+  background: #333;
+  color: rgba(255,255,255,.9);
+  border: none;
+}
+
+.ui.table thead th {
+  background-color: rgba(0,0,0,.15);
+  border-color: rgba(255,255,255,.1)!important;
+  color: rgba(255,255,255,.9);
+}
+
+.ui.table tr td {
+  border-color: rgba(255,255,255,.1)!important;
+}
+
+.ui.striped.table tbody tr:nth-child(2n), .ui.striped.table > tr:nth-child(2n) {
+  background-color: rgba(255,255,255,.05);
+}
+
+.ui.button:not(a) {
+  background-color: transparent;
+  box-shadow: 0 0 0 2px #0091c7 inset;
+  color: #0091c7;
+}
+
+.ui.button:hover {
+  background-color: #0091c7;
+  box-shadow: none!important;
+  color: #FFF;
+}
+
+.ui.header {
+  color: #f2711c;
+}
+
+.ui.form .field > label,
+.ui.styled.accordion .title.active,
+.inline.fields > label,
+.ui.toggle.checkbox input:checked~label {
+  color: #fff !important;
+}
+
+.ui.styled.accordion .title,
+.ui.toggle.checkbox input ~ label {
+  color: #767676;
+}
+
+.ui.styled.accordion .title:hover {
+  color: #f2711c;
+}
+
+.ui.segment {
+  background: #212121;
+}
+
+.ui.styled.accordion {
+  background: #212121;
+}
+
+footer {
+  background: #212121;
+}

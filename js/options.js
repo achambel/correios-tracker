@@ -1,61 +1,44 @@
 const defaultSettings = {
     name: 'settings',
-    value: JSON.stringify(
-      {
+    value: {
         checkInterval: 60,
         checkUnitInterval: 'minute',
         showNotification: true,
         checkRange: generateHourRange(),
-        lastUpdated: new Date()
-      }
-    )
-};
-
-function initializeSettings() {
-  return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(null, (storage) => {
-
-      if (!storage.hasOwnProperty(defaultSettings.name)) {
-        const settings = { 'settings': defaultSettings.value };
-        chrome.storage.sync.set(settings);
-        resolve(settings)
-      }
-      else {
-        chrome.storage.sync.get('settings', storage => {
-
-          const settings = JSON.parse(storage.settings);
-          const _default = JSON.parse(defaultSettings.value);
-
-          Object.keys(_default).forEach(k => {
-            if(!settings.hasOwnProperty(k))
-              settings[k] = _default[k]
-          });
-
-          chrome.storage.sync.set({'settings': JSON.stringify(settings)});
-          resolve(settings)
-        });
-      }
-
-    });
-  });
-
+        lastUpdated: new Date(),
+        audioEnabled: true,
+        darkTheme: true
+    }
 }
 
-function loadSettings() {
-
-  chrome.storage.sync.get('settings', (storage) => {
-
-    if(storage.hasOwnProperty(defaultSettings.name)) {
-
-      const settings = JSON.parse(storage.settings, dateTimeReviver);
-      document.getElementById('checkInterval').value = settings.checkInterval;
-      document.querySelector(`#checkUnitInterval option[value=${settings.checkUnitInterval}]`).selected = true;
-      document.getElementById('showNotification').checked = settings.showNotification;
-      renderRangeOptions(settings.checkRange);
-      document.getElementById('settingsLastUpdated').textContent = settings.lastUpdated.toLocaleString();
+async function initializeSettings () {
+  const settings = await getSettings()
+  return new Promise((resolve, reject) => {
+    let save = {}
+    if (!settings) {
+      save[defaultSettings.name] = JSON.stringify(defaultSettings.value)
+      chrome.storage.sync.set(save)
+      resolve(defaultSettings.value)
+    } else {
+      const merge = Object.assign(defaultSettings.value, settings)
+      save[defaultSettings.name] = JSON.stringify(merge)
+      chrome.storage.sync.set(save)
+      resolve(merge)
     }
 
-  });
+  })
+}
+
+function loadSettings (settings) {
+  if (!settings) return
+  document.getElementById('checkInterval').value = settings.checkInterval
+  document.querySelector(`#checkUnitInterval option[value=${settings.checkUnitInterval}]`).selected = true
+  document.getElementById('showNotification').checked = settings.showNotification
+  renderRangeOptions(settings.checkRange)
+  document.getElementById('settingsLastUpdated').textContent = settings.lastUpdated.toLocaleString()
+  document.getElementById('audioEnabled').checked = settings.audioEnabled
+  document.getElementById('theme').checked = settings.darkTheme
+  applyTheme(settings.darkTheme)
 }
 
 function saveSettings(e) {
@@ -67,7 +50,8 @@ function saveSettings(e) {
       checkUnitInterval: document.getElementById('checkUnitInterval').value,
       showNotification: document.getElementById('showNotification').checked,
       checkRange: [].map.call(document.getElementById('range').selectedOptions, ele => parseInt(ele.value)),
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      audioEnabled: document.getElementById('audioEnabled').checked
   };
 
   document.getElementById('settingsLastUpdated').textContent = settings.lastUpdated.toLocaleString();
@@ -82,17 +66,24 @@ function saveSettings(e) {
 
 }
 
-function saveReferenceNumber(e) {
+async function saveReferenceNumber (e) {
 
-  e.preventDefault();
-  const referenceNumberElement = document.getElementById('referenceNumber');
-  const referenceNumber = referenceNumberElement.value.toUpperCase();
-  const referenceDescriptionElement = document.getElementById('referenceDescription');
-  const referenceDescription = referenceDescriptionElement.value;
-  const item = new Item(referenceNumber, referenceDescription);
-  saveTrackable(item);
-  referenceNumberElement.value = '';
-  referenceDescriptionElement.value = '';
+  e.preventDefault()
+  const referenceNumberElement = document.getElementById('referenceNumber')
+  const referenceNumber = referenceNumberElement.value.toUpperCase()
+  const referenceDescriptionElement = document.getElementById('referenceDescription')
+  const referenceDescription = referenceDescriptionElement.value
+  
+  let item = new Item(referenceNumber, referenceDescription)
+  item = await saveTrackable(item)
+
+  if (item) {
+    const content = `Objeto <b>${item.referenceNumber} (${item.referenceDescription})</b> adicionado com sucesso!`
+    message({type: 'positive', icon: 'smile', content: content})
+  }
+  
+  referenceNumberElement.value = ''
+  referenceDescriptionElement.value = ''
 
 }
 
@@ -165,7 +156,7 @@ function renderTrackItems(items) {
   }
   else {
 
-    template = '<div class="ui info message"><p>Não há Objeto a rastrear ainda, por favor adicione um.</p></div>';
+    template = noObjects()
   }
 
   return template;
@@ -217,19 +208,13 @@ function renderTrackHistory(item) {
 
 }
 
-function loadTrackHistory(referenceNumber, callback) {
+async function loadTrackHistory (referenceNumber, callback) {
 
-  getTrackItems().then( items => {
-
-    const itemFiltered = items.filter(item => item.referenceNumber === referenceNumber);
-
-    if(itemFiltered.length) {
-
-      if (typeof callback === 'function') callback(renderTrackHistory(itemFiltered[0]));
-    }
-
-  });
-
+  const items = await getItems()
+  const itemFiltered = items.filter(item => item.referenceNumber === referenceNumber)
+  if(itemFiltered.length) {
+    if (typeof callback === 'function') callback(renderTrackHistory(itemFiltered[0]))
+  }
 }
 
 function showTrackHistory(history) {
@@ -238,22 +223,10 @@ function showTrackHistory(history) {
   $('.ui.basic.modal').modal('show');
 }
 
-function removeTrackable(referenceNumber) {
-
-  chrome.storage.sync.get('trackItems', storage => {
-
-    const trackItems = JSON.parse(storage.trackItems);
-    const itemIndex = trackItems.findIndex(oldItem => oldItem.referenceNumber === referenceNumber);
-
-    if(itemIndex >= 0) {
-
-      trackItems.splice(itemIndex, 1);
-      const save = {'trackItems': JSON.stringify(trackItems)};
-      chrome.storage.sync.set(save, loadTrackItems);
-    }
-
-  })
-
+function removeTrackable (referenceNumber) {
+  playSound('bin')
+  $(`tr[data-reference-number=${referenceNumber}]`).transition('fly right')
+  chrome.storage.sync.remove(referenceNumber)
 }
 
 function renderRangeOptions(checkRange) {
@@ -282,12 +255,13 @@ function generateHourRange() {
   return hours;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initializeSettings().then(settings => {
-    loadSettings();
-  });
+document.addEventListener('DOMContentLoaded', async () => {
+  const settings = await initializeSettings()
+  loadSettings(settings)
+  loadTrackItems()
 
-  loadTrackItems();
+  const legacyItems = await getLegacyItems()
+  migrateStorageStrategy('trackItems', legacyItems)
 });
 
 document.getElementById('formSaveReferenceNumber').addEventListener('submit', saveReferenceNumber);
@@ -295,10 +269,22 @@ document.getElementById('formSettings').addEventListener('submit', saveSettings)
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
-  if(request.action === 'loadTrackItems') {
-    loadTrackItems();
+  if (request.action === 'loadTrackItems') {
+    loadTrackItems()
+  } else if (request.action === 'openOptionsTab') {
+    openOptionsTab(request.item)
   }
 
 });
 
 $('.ui.accordion').accordion();
+
+document.getElementById('theme').addEventListener('click', async (e) => {
+  const settings = await getSettings()
+  settings.darkTheme = e.target.checked
+  
+  const save = {}
+  save[defaultSettings.name] = JSON.stringify(settings)
+  chrome.storage.sync.set(save)
+  applyTheme(settings.darkTheme)
+})

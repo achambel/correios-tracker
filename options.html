@@ -4,14 +4,9 @@
     <meta charset="utf-8">
     <title></title>
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css">
-    <style>
-      .check-restriction {
-        text-decoration: line-through;
-        color: lightgray;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="css/default.css">
   </head>
-  <body style="background: #d4d4d5;">
+  <body class="body-color">
     <div class="ui container">
       <form id="formSaveReferenceNumber" class="ui form segment">
         <div class="ui items">
@@ -21,13 +16,13 @@
             </div>
             <div class="middle aligned content">
               <div class="ui">
-                <h3 class="ui dividing header">Correios Tracker - Configurar Objetos</h3>
+                <h3 class="ui dividing header">Correios Tracker - Lista de Objetos</h3>
                 <div class="three fields">
                   <div class="field">
                     <label for="referenceNumber">Número do objeto: </label>
                     <input type="text" class="input" id="referenceNumber"
                                              maxlength="21"
-                                             placeholder="Ex.AA100833276BR"
+                                             placeholder="Ex. AA100833276BR"
                                              pattern="[\w\d]{9,21}"
                                              required>
                   </div>
@@ -52,21 +47,30 @@
         </div>
 
       </form>
+
+      <div id="message-container" class="ui hidden icon message">
+        <i id="message-icon" class="icon"></i>
+        <div class="content">
+          <p id="message-content"></p>
+        </div>
+        <i class="close icon"></i>
+      </div>
+
       <div id="trackItems"></div>
 
       <br>
 
       <div class="ui styled fluid accordion">
-        <div class="active title">
+        <div class="title">
           <i class="dropdown icon"></i>
-          Configurações - Última atualização ocorreu em
+          Configurações - Última alteração ocorreu em
           <a class="ui label">
             <i class="calendar icon"></i>
             <span id="settingsLastUpdated"></span>
           </a>
         </div>
 
-        <div class="active content">
+        <div class="content">
         <form id="formSettings" class="ui form">
 
           <div class="inline fields">
@@ -91,6 +95,15 @@
               </div>
             </div>
 
+            <div class="field">
+              <div class="ui toggle checkbox">
+                <input type="checkbox" id="audioEnabled" checked>
+                <label class="label" style="cursor: pointer;" for="audioEnabled">
+                  Tocar áudio ao ser notificado?
+                </label>
+              </div>
+            </div>
+
           </div>
 
           <div class="inline fields">
@@ -111,11 +124,19 @@
       <br>
 
       <footer>
-          <p>Feito com <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
+          <p id="footerLeft">Feito com <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
               <i class="dollar icon"></i>
               DOE!
             </a>
           </p>
+          
+          <div id="footerRight" class="ui toggle checkbox">
+              <input type="checkbox" id="theme" checked>
+              <label class="label" style="cursor: pointer;" for="theme">
+                Tema Dark
+              </label>
+          </div>
+          
       </footer>
 
   </div>

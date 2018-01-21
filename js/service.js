@@ -1,7 +1,5 @@
-const Item = function(referenceNumber, referenceDescription) {
-  
-  const now = new Date();
-
+const Item = function (referenceNumber, referenceDescription) {
+  const now = new Date()
   return {
     referenceNumber: referenceNumber,
     referenceDescription: referenceDescription,
@@ -13,222 +11,204 @@ const Item = function(referenceNumber, referenceDescription) {
     nextCheck: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes()),
     setNextCheck: function(settings) {
 
-      const baseDate = this.checkedAt || new Date();
+      const baseDate = this.checkedAt || new Date()
 
-      if(settings.checkUnitInterval === 'minute') {
-
-        this.nextCheck.setMinutes(baseDate.getMinutes() + settings.checkInterval);
-      }
-      else if(settings.checkUnitInterval === 'hour') {
-
-        this.nextCheck.setHours(baseDate.getHours() + settings.checkInterval);
-      }
-      else if(settings.checkUnitInterval === 'day') {
-
-        this.nextCheck.setDate(baseDate.getDate() + settings.checkInterval);
+      if (settings.checkUnitInterval === 'minute') {
+        this.nextCheck.setMinutes(baseDate.getMinutes() + settings.checkInterval)
+      } else if(settings.checkUnitInterval === 'hour') {
+        this.nextCheck.setHours(baseDate.getHours() + settings.checkInterval)
+      } else if(settings.checkUnitInterval === 'day') {
+        this.nextCheck.setDate(baseDate.getDate() + settings.checkInterval)
       }
     }
   }
-
-};
-
-function trackerCallback(response) {
-
-  trackable(response);
-
 }
 
-function trackable(response) {
+function trackerCallback (response) {
+  trackable(response)
+}
 
-  let tracks = [];
-  const orderedHistory = response.historico.sort( (a, b) => strDateBRToISODate(a.data) - strDateBRToISODate(b.data) );
+async function trackable (response) {
+  let tracks = []
+  const orderedHistory = response.historico.sort((a, b) => {
+    return strDateBRToISODate(a.data) - strDateBRToISODate(b.data)
+  })
 
   for (let i=orderedHistory.length-1; i>=0; i--) {
-
     let track = {
-
       date: orderedHistory[i].data,
       details: orderedHistory[i].detalhes,
       place: orderedHistory[i].local,
       status: orderedHistory[i].situacao
-
-    };
-
-    tracks.push(track);
+    }
+    tracks.push(track)
   }
 
-  let item = new Item(response.codigo);
-  item.lastStatus = tracks[0].status;
-  item.checkedAt = new Date();
-  item.tracks = tracks;
-
-  saveTrackable(item);
-
-  const options = {
-    body: `Status: ${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
-    icon: '../256x256.png'
-   };
-
-   chrome.storage.sync.get('settings', storage => {
-
-    const settings = JSON.parse(storage.settings);
-
-    if (settings.showNotification && item.statusChanged) {
-      new Notification(`${item.referenceNumber} (${item.referenceDescription})`, options);
-    }
-
-   });
-
+  let item = new Item(response.codigo)
+  item.lastStatus = tracks[0].status
+  item.checkedAt = new Date()
+  item.tracks = tracks
+  item = await saveTrackable(item)
+  
+  const settings = await getSettings()
+  if (settings.showNotification && item.statusChanged) {
+    showNotification(item)
+    playSound('notification')
+  }
 }
 
-function trackerFailCallback(fail, referenceNumber) {
-
+async function trackerFailCallback (fail, referenceNumber) {
   if (fail.status === 404) {
-    let item = new Item(referenceNumber);
-    item.lastStatus = 'Objeto não encontrado';
-    item.checkedAt = new Date();
-    saveTrackable(item);
+    let item = new Item(referenceNumber)
+    item.lastStatus = 'Objeto não encontrado'
+    item.checkedAt = new Date()
+    await saveTrackable(item)
+    showNotification(item)
+    playSound('notification')
+  }
+}
 
-    const options = {
-      body: `${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
-      icon: '../256x256.png'
-     };
+async function tracker (referenceNumber) {
+    const settings = await getSettings()
+    const now = new Date()
+    if (!settings.checkRange.includes(now.getHours())) {
+      const restrictions = settings.checkRange.join(', ')
+      console.info(`Horário ${now.toLocaleString()} está restrito para verificação.
+      Configurado para permitir apenas nessas horas: ${restrictions}`)
+      updateItemWithRestriction(referenceNumber)
+      return
+    }
 
-     new Notification(item.referenceNumber, options);
+    const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`
+    $.get(url, trackerCallback).fail((f) => trackerFailCallback(f, referenceNumber))
+}
+
+async function updateItemWithRestriction (referenceNumber) {
+  const item = await getItem(referenceNumber)
+  if (item) {
+    item.checkedAt = new Date()
+    item.checkRestriction = true
+    saveTrackable(item)
+  }
+}
+
+async function saveTrackable (item) {
+  const settings = await getSettings()
+  if (typeof item.setNextCheck === 'function') {
+    item.setNextCheck(settings)
   }
 
+  const itemExisting = await getItem(item.referenceNumber)
+  if (itemExisting) {
+    item.referenceDescription = itemExisting.referenceDescription
+    item.statusChanged = itemExisting.lastStatus != item.lastStatus // TODO compare date also
+    item = Object.assign(itemExisting, item)
+  }
+    
+  const save = {}
+  save[item.referenceNumber] = JSON.stringify(item)
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.set(save, () => {
+      if (chrome.runtime.lastError) {
+        message({type: 'negative', icon: 'frown', content: chrome.runtime.lastError.message})
+        return reject(false)
+      }
+      chrome.runtime.sendMessage({action: 'loadTrackItems'})
+      loadTrackItems(item.referenceNumber)
+      return resolve(item)
+    })
+  })
+  
 }
 
-function tracker(referenceNumber) {
+async function loadTrackItems (transitionItem) {
+  const items = await getItems()
+  const trackItems = document.getElementById('trackItems')
 
-  chrome.storage.sync.get('settings', storage => {
+  if (trackItems) {
+    trackItems.innerHTML = renderTrackItems(items)
+    $('.show-track-history').click( (e) => loadTrackHistory(e.target.parentElement.parentElement.dataset.referenceNumber, showTrackHistory))
+    $('.remove-trackable').click( (e) => removeTrackable(e.target.parentElement.parentElement.dataset.referenceNumber))
+    $('.check-now').click( (e) => tracker(e.target.parentElement.parentElement.dataset.referenceNumber))
+    $('#checkAll').click(checkAll)
+  }
 
-    const settings = JSON.parse(storage.settings);
-    const now = new Date();
-
-    if (!settings.checkRange.includes(now.getHours())) {
-
-      const restrictions = settings.checkRange.join(', ');
-
-      console.info(`Horário ${now.toLocaleString()} está restrito para verificação.
-      Configurado para permitir apenas nessas horas: ${restrictions}`);
-
-      updateItemWithRestriction(referenceNumber);
-
-      return;
-    }
-
-    const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`;
-
-    $.get(url, trackerCallback).fail( (f) => trackerFailCallback(f, referenceNumber) );
-
-  });
-
+  if (transitionItem) {
+    highlightItem(transitionItem)
+  }
 }
 
-function updateItemWithRestriction(referenceNumber) {
-  chrome.storage.sync.get('trackItems', storage => {
-
-    const items = JSON.parse(storage.trackItems);
-    let item = items.find(i => i.referenceNumber === referenceNumber);
-
-    if (item) {
-      item.checkedAt = new Date();
-      item.checkRestriction = true;
-      saveTrackable(item);
-    }
-
-  });
+async function checkAll() {
+  const items = await getItems()
+  items.forEach(item => tracker(item.referenceNumber))
 }
 
-function saveTrackable(item) {
-
-  chrome.storage.sync.get(null, (storage) => {
-
-    const settings = JSON.parse(storage.settings);
-    let trackItems = [];
-
-    if (typeof item.setNextCheck === 'function') {
-      item.setNextCheck(settings);
-    }
-
-    if(storage.hasOwnProperty('trackItems')) {
-
-      trackItems = JSON.parse(storage.trackItems);
-    }
-
-    const itemExists = trackItems.findIndex(oldItem => oldItem.referenceNumber === item.referenceNumber);
-
-    if(itemExists >= 0) {
-      item.referenceDescription = trackItems[itemExists].referenceDescription
-      item.statusChanged = trackItems[itemExists].lastStatus != item.lastStatus
-      trackItems[itemExists] = item;
-    }
-    else {
-      trackItems.push(item);
-   }
-
-  const save = {'trackItems': JSON.stringify(trackItems)};
-  chrome.storage.sync.set(save, () => {
-
-    chrome.runtime.sendMessage({action: 'loadTrackItems'});
-    loadTrackItems();
+function migrateStorageStrategy(key, legacyItems) {
+  // until version 0.4 items were storaged like that:
+  // {trackItems: [Item]}
+  // There were a limit of 8,192 bytes per item.
+  // Find by QUOTA_BYTES_PER_ITEM on https://developer.chrome.com/apps/storage#property-sync
+  legacyItems.forEach((item, index) => {
+    // timeout necessary because restriction MAX_WRITE_OPERATIONS_PER_MINUTE
+    // 2 per second. :(
+    setTimeout(() => saveTrackable(item), 500 * index)
   });
-
-  });
-
+  chrome.storage.sync.remove(key)
 }
 
-function loadTrackItems() {
-
-  getTrackItems().then( items => {
-
-    const trackItems = document.getElementById('trackItems');
-
-    if (trackItems) {
-
-      trackItems.innerHTML = renderTrackItems(items);
-      $('.show-track-history').click( (e) => loadTrackHistory(e.target.parentElement.parentElement.dataset.referenceNumber, showTrackHistory));
-      $('.remove-trackable').click( (e) => removeTrackable(e.target.parentElement.parentElement.dataset.referenceNumber));
-      $('.check-now').click( (e) => tracker(e.target.parentElement.parentElement.dataset.referenceNumber));
-      $('#checkAll').click(checkAll);
-    }
-
-    $(trackItems).transition('bounce');
-
-  });
-
+async function getSettings () {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get('settings', storage => {
+      if (storage.settings) {
+        resolve(JSON.parse(storage.settings, dateTimeReviver))
+      } else {
+        resolve(false)
+      }
+    })
+  })
 }
 
-function checkAll() {
-
-  getTrackItems().then( items => {
-
-    items.forEach( item => tracker(item.referenceNumber) );
-  });
-
-
-}
-
-function getTrackItems() {
-
-  const promise = new Promise( (resolve, reject) => {
-
-    let trackItems = [];
-
-    chrome.storage.sync.get('trackItems', storage => {
-
-      if(storage.hasOwnProperty('trackItems')) {
-
-        trackItems = JSON.parse(storage.trackItems, dateTimeReviver);
-
+async function getItems () {
+  let trackItems = [];
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(null, storage => {
+      const regex = /^[\w\d]{9,21}$/
+      
+      for (const [key, value] of Object.entries(storage)) {
+        if (regex.test(key)) {
+          const item = JSON.parse(value, dateTimeReviver);
+          if (item.hasOwnProperty('referenceNumber')) {
+            trackItems.push(item)
+          }
+        }
       }
 
-      resolve(trackItems);
+      resolve(trackItems)
 
+    })
+  })
+}
+
+async function getLegacyItems () {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get('trackItems', storage => {
+      if (storage.trackItems) {
+        resolve(JSON.parse(storage.trackItems))
+      } else {
+        resolve([])
+      }
     });
+  })
+}
 
-  });
-
-  return promise;
+async function getItem (referenceNumber) {
+  return new Promise((resolve, reject) => {
+    chrome.storage.sync.get(referenceNumber, storage => {
+      if (storage[referenceNumber]) {
+        resolve(JSON.parse(storage[referenceNumber]))
+      } else {
+        resolve(false)
+      }
+    })
+  })
 }
