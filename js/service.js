@@ -4,6 +4,7 @@ const Item = function (referenceNumber, referenceDescription) {
     referenceNumber: referenceNumber,
     referenceDescription: referenceDescription,
     lastStatus: '',
+    lastStatusDate: '',
     statusChanged: false,
     tracks: [],
     checkedAt: '',
@@ -46,6 +47,7 @@ async function trackable (response) {
 
   let item = new Item(response.codigo)
   item.lastStatus = tracks[0].status
+  item.lastStatusDate = tracks[0].date
   item.checkedAt = new Date()
   item.tracks = tracks
   item = await saveTrackable(item)
@@ -101,7 +103,7 @@ async function saveTrackable (item) {
   const itemExisting = await getItem(item.referenceNumber)
   if (itemExisting) {
     item.referenceDescription = itemExisting.referenceDescription
-    item.statusChanged = itemExisting.lastStatus != item.lastStatus // TODO compare date also
+    item.statusChanged = itemExisting.lastStatusDate != item.lastStatusDate
     item = Object.assign(itemExisting, item)
   }
     
