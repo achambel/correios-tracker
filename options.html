@@ -6,148 +6,79 @@
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.10/semantic.min.css">
     <link rel="stylesheet" type="text/css" href="css/default.css">
   </head>
-  <body class="body-color">
+  <body>
     <div class="ui container">
-      <form id="formSaveReferenceNumber" class="ui form segment">
-        <div class="ui items">
-          <div class="item">
-            <div class="ui image">
+      <div class="ui left fixed vertical pointing icon menu">
+        <div class="item">
+          <div class="header">
+            <a class="ui mini logo icon image">
               <img src="128x128.png">
-            </div>
-            <div class="middle aligned content">
-              <div class="ui">
-                <h3 class="ui dividing header">Correios Tracker - Lista de Objetos</h3>
-                <div class="three fields">
-                  <div class="field">
-                    <label for="referenceNumber">Número do objeto: </label>
-                    <input type="text" class="input" id="referenceNumber"
-                                             maxlength="21"
-                                             placeholder="Ex. AA100833276BR"
-                                             pattern="[\w\d]{9,21}"
-                                             required>
-                  </div>
-                  <div class="field">
-                    <label for="referenceDescription">Descrição do objeto: </label>
-                    <input type="text" class="input" id="referenceDescription"
-                                             maxlength="64"
-                                             placeholder="Ex. Livro - Submarino"
-                                             required>
-                  </div>
-                  <div class="field">
-                    <label>&nbsp;</label>
-                    <button class="ui labeled icon button">
-                      <i class="mail icon"></i>
-                      Adicionar
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </form>
-
-      <div id="message-container" class="ui hidden icon message">
-        <i id="message-icon" class="icon"></i>
-        <div class="content">
-          <p id="message-content"></p>
-        </div>
-        <i class="close icon"></i>
-      </div>
-
-      <div id="trackItems"></div>
-
-      <br>
-
-      <div class="ui styled fluid accordion">
-        <div class="title">
-          <i class="dropdown icon"></i>
-          Configurações - Última alteração ocorreu em
-          <a class="ui label">
-            <i class="calendar icon"></i>
-            <span id="settingsLastUpdated"></span>
-          </a>
-        </div>
-
-        <div class="content">
-        <form id="formSettings" class="ui form">
-
-          <div class="inline fields">
-            <label class="label" for="checkInterval">Verificar status a cada </label>
-
-            <div class="field">
-              <input type="number" class="input" id="checkInterval" value="60" min="1" max="99" required>
-            </div>
-
-            <div class="field">
-              <select id="checkUnitInterval" class="ui fluid dropdown">
-                <option value="minute">Minuto(s)</option>
-                <option value="hour">Hora(s)</option>
-                <option value="day">Dia(s)</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <div class="ui toggle checkbox">
-                <input type="checkbox" id="showNotification" checked>
-                <label class="label" style="cursor: pointer;" for="showNotification">Mostrar notificação quando completar a verificação?</label>
-              </div>
-            </div>
-
-            <div class="field">
-              <div class="ui toggle checkbox">
-                <input type="checkbox" id="audioEnabled" checked>
-                <label class="label" style="cursor: pointer;" for="audioEnabled">
-                  Tocar áudio ao ser notificado?
-                </label>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="inline fields">
-            <label class="label">Verificar apenas nessas horas</label>
-            <div class="field">
-              <select id="range" multiple title="Permite selecionar múltiplos horários"></select>
-            </div>
-          </div>
-
-          <button class="ui icon button">
-                  <i class="save icon"></i>
-                  Salvar
-                </button>
-        </form>
-        </div>
-      </div>
-
-      <br>
-
-      <footer>
-          <p id="footerLeft">Feito com <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
-              <i class="dollar icon"></i>
-              DOE!
             </a>
-          </p>
-          
-          <div id="footerRight" class="ui toggle checkbox">
-              <input type="checkbox" id="theme" checked>
-              <label class="label" style="cursor: pointer;" for="theme">
-                Tema Dark
-              </label>
+            Correios Tracker
           </div>
-          
-      </footer>
-
+        </div>
+        <a class="item active" id="active-items-link">
+          <i class="shipping icon"></i>
+          Objetos
+          <div id="objectCounter" class="ui red left label">0</div>
+        </a>
+        <a class="item" id="archived-link">
+          <i class="folder open icon"></i>
+          Arquivados
+          <div id="archivedCounter" class="ui left label">0</div>
+        </a>
+        <a class="item" id="settings-link">
+          <i class="settings icon"></i>
+          Configurações
+        </a>
+        <a class="item" id="help-link">
+          <i class="money icon"></i>
+          Por que devo doar?
+        </a>
+      </div>
+      <div id="container"></div>
   </div>
 
-    <div class="ui basic modal">
+<footer>
+  <p id="footerLeft">Feito com <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
+      <i class="dollar icon"></i>
+      DOE!
+    </a>
+  </p>
+  
+  <div id="footerRight" class="ui toggle checkbox">
+      <input type="checkbox" id="theme">
+      <label class="label" style="cursor: pointer;" for="theme">
+        Tema Dark
+      </label>
+  </div>
+</footer>
+
+    <div id="message-modal" class="ui basic modal">
       <div class="ui header">Tracks</div>
       <div class="content"></div>
     </div>
 
+    <div id="help-modal" class="ui basic modal">
+      <div class="ui red centered header">Precisamos da sua ajuda</div>
+      <div class="content">
+        <h3>Este projeto não inclui nenhum tipo de spam, publicidade ou algo que possa atrapalhar seu foco.</h3>
+        <h3>Entretanto, também não gera nenhum tipo de rendimento para os desenvolvedores.</h3>
+        <h3>Para que continuemos a evoluir e melhorar a cada nova versão, solicitamos uma contribuição de qualquer valor.</h3>
+        <h3>Obrigado! 😀</h3>
+        <div class="actions" style="text-align: center;">
+          <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ"
+            target="_blank">
+            <i class="dollar icon"></i>
+            DOAR!
+          </a>
+        </div>
+      </div>
+    </div>
+
     <script src="js/vendor/jquery.min.js"></script>
     <script src="js/vendor/semantic.min.js"></script>
+    <script src="js/vendor/moment.min.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/options.js"></script>
     <script src="js/service.js"></script>

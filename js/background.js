@@ -2,13 +2,22 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.tabs.create({'url': chrome.extension.getURL('../options.html')})
 })
 
-chrome.alarms.onAlarm.addListener(async function(alarm) {
-  
-  if (alarm.name === 'checkTrackerItems') {
-    const items = await getItems()
+chrome.alarms.create('checkTrackerItems', 
+	{
+		when: Date.now(),
+		periodInMinutes: 1
+	}
+)
+
+chrome.alarms.onAlarm.addListener(async function (alarm) {
+
+	if (alarm.name === 'checkTrackerItems') {
+		const items = await getActiveItems()
+		if (!items) return
 		items.forEach(item => {
 			const scheduledTime = new Date(alarm.scheduledTime)
-			if (item.nextCheck <= scheduledTime) {
+			const nextCheck = new Date(item.nextCheck)
+			if (nextCheck <= scheduledTime) {
 				tracker(item.referenceNumber)
 			} else {
 				console.info(`Alarm name: ${alarm.name}`)
@@ -16,8 +25,6 @@ chrome.alarms.onAlarm.addListener(async function(alarm) {
 				console.info(`It's ${formatDate(scheduledTime)} and next checking should be at ${formatDate(item.nextCheck)}`)
 			}
 		})
-  }
+	}
 
 })
-
-chrome.alarms.create('checkTrackerItems', {periodInMinutes: 1})

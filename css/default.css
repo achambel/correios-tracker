@@ -1,14 +1,37 @@
 body {
   background: #d4d4d5;
+  font-family: Roboto,sans-serif;
+}
+.ui.container {
+  min-height: 100%;
+}
+.ui.menu {
+  font-family: Roboto,sans-serif;
+}
+
+.ui.vertical.icon.menu .item>.icon:not(.dropdown) {
+  font-size: 30px;
 }
 
 .check-restriction {
   text-decoration: line-through;
-  color: lightgray;
+  color: #9e9e9e73;
+}
+
+.asc::after {
+  content: '▲';
+}
+
+.desc::after {
+  content: '▼';
+}
+
+.ui.table th:hover {
+  cursor: pointer;
 }
 
 .ui.table tr {
-  transition: 2s linear all;
+  transition: 1s linear background;
 }
 
 .recently-updated {
@@ -21,12 +44,11 @@ footer {
   background: #fff;
   position: sticky;
   bottom: 0;
-  z-index: 4;
+  z-index: 999;
   padding: 3px;
   height: 55px;
+  width: 100%;
   text-align: center;
-  border-radius: .28571429rem;
-  box-shadow: 0 1px 2px 0 rgba(34,36,38,.15), 0 0 0 1px rgba(34,36,38,.15);
 }
 
 #footerLeft {

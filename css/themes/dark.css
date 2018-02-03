@@ -71,14 +71,39 @@ body {
   color: #f2711c;
 }
 
-.ui.segment {
-  background: #212121;
-}
-
-.ui.styled.accordion {
-  background: #212121;
-}
-
+.ui.segment,
+.ui.styled.accordion,
+.ui.menu,
 footer {
-  background: #212121;
+  background: #212121!important;
+}
+
+.ui.icon.menu .item {
+  color: #fff;
+}
+
+.ui.menu a.item:hover,
+.ui.vertical.menu .active.item:hover {
+  background: #ffffff14;
+  color: #f2711c;
+}
+
+.ui.vertical.menu .active.item {
+  background: #3d3d3d;
+  box-shadow: none;
+}
+
+.ui.pointing.menu .active.item:after,
+.ui.vertical.pointing.menu .active.item:after {
+background-color: #3d3d3d;
+}
+.ui.pointing.menu .active.item:hover:after,
+.ui.vertical.pointing.menu .active.item:hover:after {
+  background-color: #3d3d3d;
+  border-top: 1px solid #3d3d3d;
+  border-right: 1px solid #3d3d3d;
+}
+.ui.vertical.pointing.menu .item:after {
+  border-top: 1px solid #3d3d3d;
+  border-right: 1px solid #3d3d3d;
 }

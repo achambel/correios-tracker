@@ -5,10 +5,12 @@ const Item = function (referenceNumber, referenceDescription) {
     referenceDescription: referenceDescription,
     lastStatus: '',
     lastStatusDate: '',
+    lastPlace: '',
     statusChanged: false,
     tracks: [],
     checkedAt: '',
     checkRestriction: false,
+    archived: false,
     nextCheck: new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes()),
     setNextCheck: function(settings) {
 
@@ -30,24 +32,21 @@ function trackerCallback (response) {
 }
 
 async function trackable (response) {
-  let tracks = []
-  const orderedHistory = response.historico.sort((a, b) => {
-    return strDateBRToISODate(a.data) - strDateBRToISODate(b.data)
-  })
-
-  for (let i=orderedHistory.length-1; i>=0; i--) {
-    let track = {
-      date: orderedHistory[i].data,
-      details: orderedHistory[i].detalhes,
-      place: orderedHistory[i].local,
-      status: orderedHistory[i].situacao
+  const tracks = response.historico.map(h => {
+    return {
+      date: moment(h.data, 'DD/MM/YYYY HH:mm').toISOString(),
+      details: h.detalhes,
+      place: h.local,
+      status: h.situacao
     }
-    tracks.push(track)
-  }
+  }).sort((a, b) => {
+    return moment(b.date).isAfter(a.date)
+  })
 
   let item = new Item(response.codigo)
   item.lastStatus = tracks[0].status
   item.lastStatusDate = tracks[0].date
+  item.lastPlace = tracks[0].place
   item.checkedAt = new Date()
   item.tracks = tracks
   item = await saveTrackable(item)
@@ -102,11 +101,22 @@ async function saveTrackable (item) {
 
   const itemExisting = await getItem(item.referenceNumber)
   if (itemExisting) {
+    const regex = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/
+    const legacyPattern = regex.test(itemExisting.lastStatusDate)
+    if (itemExisting.lastStatusDate) {
+      const lastStatusDate = legacyPattern 
+        ? moment(itemExisting.lastStatusDate, 'DD/MM/YYYY HH:mm')
+        : moment(itemExisting.lastStatusDate)
+      const currentStatusDate = moment(item.lastStatusDate)
+      item.statusChanged = currentStatusDate.isAfter(lastStatusDate)
+    } else if (itemExisting.lastStatusDate === '' && moment(item.lastStatusDate).isValid()) {
+      item.statusChanged = true
+    }
+
     item.referenceDescription = itemExisting.referenceDescription
-    item.statusChanged = itemExisting.lastStatusDate != item.lastStatusDate
     item = Object.assign(itemExisting, item)
   }
-    
+
   const save = {}
   save[item.referenceNumber] = JSON.stringify(item)
   return new Promise((resolve, reject) => {
@@ -123,16 +133,21 @@ async function saveTrackable (item) {
   
 }
 
-async function loadTrackItems (transitionItem) {
-  const items = await getItems()
+async function loadTrackItems (transitionItem, sorter) {
+  const items = await getActiveItems(sorter)
   const trackItems = document.getElementById('trackItems')
 
   if (trackItems) {
-    trackItems.innerHTML = renderTrackItems(items)
+    trackItems.innerHTML = renderTrackItems(items, sorter)
+    $('.ui.dropdown').dropdown()
     $('.show-track-history').click( (e) => loadTrackHistory(e.target.parentElement.parentElement.dataset.referenceNumber, showTrackHistory))
-    $('.remove-trackable').click( (e) => removeTrackable(e.target.parentElement.parentElement.dataset.referenceNumber))
-    $('.check-now').click( (e) => tracker(e.target.parentElement.parentElement.dataset.referenceNumber))
+    $('.remove-trackable').click( (e) => removeTrackable(e.target.dataset.number))
+    $('.check-now').click( (e) => tracker(e.target.dataset.number))
     $('#checkAll').click(checkAll)
+    $('.archive-trackable').click( (e) => archiveTrackable(e.target.dataset.number))
+    updateCounters()
+    momentFromNow()
+    sortItems()
   }
 
   if (transitionItem) {
@@ -141,7 +156,7 @@ async function loadTrackItems (transitionItem) {
 }
 
 async function checkAll() {
-  const items = await getItems()
+  const items = await getActiveItems()
   items.forEach(item => tracker(item.referenceNumber))
 }
 
@@ -213,4 +228,18 @@ async function getItem (referenceNumber) {
       }
     })
   })
+}
+
+async function getActiveItems (sorter = {prop: 'lastStatusDate', order: 'desc'}) {
+  let items = await getItems()
+  items = items.filter(i => !i.archived)
+  if (typeof sorter === 'object') {
+    items = sort(items, sorter.prop, sorter.order)
+  }
+  return items
+}
+
+async function getArchivedItems () {
+  const items = await getItems()
+  return items.filter(i => i.archived)
 }

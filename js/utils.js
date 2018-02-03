@@ -20,18 +20,6 @@ function dateTimeReviver(key, value) {
   return value;
 }
 
-function strDateBRToISODate(str) {
-  
-  const arr = str.split(" ");
-  
-  return Date.parse(
-      arr[0]
-        .split("/")
-        .reverse()
-        .join("-") + "T" + arr[1]);
-
-}
-
 const statusesClass = {
 	OBJETO_ENTREGUE_AO_DESTINATÁRIO: 'green'
 }
@@ -65,7 +53,14 @@ async function playSound (type) {
   const settings = await getSettings()
 
   if (settings.audioEnabled) {
-    const file = type === 'bin' ? '../audio/bin.mp3' : '../audio/cheerful.mp3'
+    let file = '../audio/cheerful.mp3'
+    if (type === 'bin') {
+      file = '../audio/bin.mp3'
+    } else if (type === 'archive') {
+      file = '../audio/archive.mp3'
+    } else if (type === 'restore') {
+      file = '../audio/restore.mp3'
+    }
     const audio = new Audio()
     audio.src = file
     audio.play()
@@ -86,8 +81,8 @@ function showNotification(item) {
 }
 
 function highlightItem (item) {
-  if (!item) return
   const tr = document.querySelector(`tr[data-reference-number="${item}"]`)
+  if (!tr) return
   tr.classList.add('recently-updated')
   setTimeout(() => {
     tr.classList.remove('recently-updated')
@@ -103,7 +98,6 @@ function openOptionsTab (item) {
       })
     } else {
       chrome.tabs.create({url: chrome.extension.getURL('../options.html')})
-      setTimeout(() => console.log('bla'), 2000)
     }
   })
 }
@@ -130,9 +124,49 @@ function applyTheme (darkTheme) {
   } else if (link) {
     link.remove()
   }
+  const elm = document.getElementById('theme')
+  if (elm) elm.checked = darkTheme
 }
 
-// Google Analytics
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', 'UA-112767555-1']);
-_gaq.push(['_trackPageview']);
+function sort (items, prop, order) {
+  
+  if (!items.length) return []
+
+  items.sort((a, b) => {
+    const isDate = moment(a[prop]).isValid()
+    if (order === 'asc') {
+      return isDate ? moment(a[prop]).isAfter(moment(b[prop])) : a[prop] > b[prop]
+    } else if (order === 'desc') {
+      return isDate ? moment(b[prop]).isAfter(moment(a[prop])) : b[prop] > a[prop] 
+    } else {
+      throw new Error('You should define the order for sort the items')
+    }
+  })
+
+  return items
+}
+
+function momentFromNow () {
+  $('[data-moment]').each(function () {
+    const date = this.dataset.moment
+    if (date) {
+      const current = moment(new Date(date))
+      $(this).text(current.fromNow())
+    }
+  })
+}
+
+function hasTracks (item) {
+  return item.tracks.length > 0
+}
+
+function firstTrack (item) {
+  if (hasTracks(item)) {
+    const index = item.tracks.length - 1
+    return item.tracks[index]
+  }
+}
+
+function lastTrack (item) {
+  return item.tracks[0]
+}
