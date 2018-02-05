@@ -2,6 +2,12 @@ body {
   background: #d4d4d5;
   font-family: Roboto,sans-serif;
 }
+#content {
+  max-width: 87%;
+  margin-left: 33px;
+  margin-top: 10px;
+  min-height: 100%;
+}
 .ui.container {
   min-height: 100%;
 }

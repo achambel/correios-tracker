@@ -7,52 +7,37 @@
     <link rel="stylesheet" type="text/css" href="css/default.css">
   </head>
   <body>
-    <div class="ui container">
-      <div class="ui left fixed vertical pointing icon menu">
-        <div class="item">
-          <div class="header">
-            <a class="ui mini logo icon image">
-              <img src="128x128.png">
-            </a>
-            Correios Tracker
-          </div>
-        </div>
-        <a class="item active" id="active-items-link">
-          <i class="shipping icon"></i>
-          Objetos
-          <div id="objectCounter" class="ui red left label">0</div>
+    <div class="ui vertical labeled icon left visible thin sidebar menu">
+      <div class="item">
+        <a class="ui mini logo icon image">
+          <img src="128x128.png">
         </a>
-        <a class="item" id="archived-link">
-          <i class="folder open icon"></i>
-          Arquivados
-          <div id="archivedCounter" class="ui left label">0</div>
-        </a>
-        <a class="item" id="settings-link">
-          <i class="settings icon"></i>
-          Configurações
-        </a>
-        <a class="item" id="help-link">
-          <i class="money icon"></i>
-          Por que devo doar?
-        </a>
+        <h5>Correios Tracker</h5>
       </div>
-      <div id="container"></div>
-  </div>
+      <a class="item active" id="active-items-link">
+        <i class="shipping icon"></i>
+        Objetos
+        <div id="objectCounter" class="ui red left label">0</div>
+      </a>
+      <a class="item" id="archived-link">
+        <i class="folder open icon"></i>
+        Arquivados
+        <div id="archivedCounter" class="ui left label">0</div>
+      </a>
+      <a class="item" id="settings-link">
+        <i class="settings icon"></i>
+        Configurações
+      </a>
+      <a class="item" id="help-link">
+        <i class="money icon"></i>
+        Por que devo doar?
+      </a>
+    </div>
 
-<footer>
-  <p id="footerLeft">Feito com <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ" target="_blank">
-      <i class="dollar icon"></i>
-      DOE!
-    </a>
-  </p>
-  
-  <div id="footerRight" class="ui toggle checkbox">
-      <input type="checkbox" id="theme">
-      <label class="label" style="cursor: pointer;" for="theme">
-        Tema Dark
-      </label>
+    <div id="content" class="dimmed pusher">
+      <div id="container"></div>
+    </div>
   </div>
-</footer>
 
     <div id="message-modal" class="ui basic modal">
       <div class="ui header">Tracks</div>
@@ -75,6 +60,24 @@
         </div>
       </div>
     </div>
+
+    <footer>
+      <p id="footerLeft">Feito com
+        <i class="red heart icon"></i>. Se você considera esta ferramenta útil, por favor
+        <a class="ui labeled icon red button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJDYN2DG4V8RQ"
+          target="_blank">
+          <i class="dollar icon"></i>
+          DOE!
+        </a>
+      </p>
+    
+      <div id="footerRight" class="ui toggle checkbox">
+        <input type="checkbox" id="theme">
+        <label class="label" style="cursor: pointer;" for="theme">
+          Tema Dark
+        </label>
+      </div>
+    </footer>
 
     <script src="js/vendor/jquery.min.js"></script>
     <script src="js/vendor/semantic.min.js"></script>

@@ -93,8 +93,8 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
         <th data-sort="lastStatusDate" class="${sorter.prop === 'lastStatusDate' ? sorter.order : ''}">Data</th>
         <th data-sort="lastPlace" class="${sorter.prop === 'lastPlace' ? sorter.order : ''}">Local</th>
         <th>Histórico</th>
-        <th data-sort="nextCheck" class="${sorter.prop === 'nextCheck' ? sorter.order : ''}">Próxima verificação</th>
         <th class="center aligned">Ações</th>
+        <th data-sort="nextCheck" class="${sorter.prop === 'nextCheck' ? sorter.order : ''}">Próxima verificação</th>
       </thead>
       <tbody>
         {{lines}}
@@ -129,7 +129,6 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
                       mostrar
                     </button>
                 </td>
-                <td data-moment="${item.nextCheck}"></td>
                 <td>
                   <div class="ui dropdown button">
                     <i class="dropdown icon"></i>
@@ -149,6 +148,7 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
                     </div>
                   </div>
                 </td>
+                <td data-moment="${item.nextCheck}"></td>
               </tr>
             `
   }).join('');
