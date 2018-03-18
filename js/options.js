@@ -376,6 +376,13 @@ function renderActiveItems () {
                         <i class="mail icon"></i>
                         Adicionar
                       </button>
+                      <button
+                        class="ui labeled icon button"
+                        id="importFile"
+                        title="Importar arquivo texto com número do objeto e descrição separados por vírgula. Exemplo:\nAA100833276BR,Livro\nAA100833777CH,Cerveja">
+                        <i class="file icon"></i>
+                        Importar
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -394,6 +401,10 @@ function renderActiveItems () {
 
   $('#container').html(template)
   $('#formSaveReferenceNumber').on('submit', saveReferenceNumber)
+  $('#importFile').click(function (e) {
+    e.preventDefault()
+    inputFileHandler()
+  })
   loadTrackItems()
 }
 
@@ -478,6 +489,57 @@ function sortItems () {
     $(this).addClass(order)
     loadTrackItems(null, {prop: this.dataset.sort, order: order})
   })
+}
+
+function inputFileHandler () {
+  const inputFile = document.getElementById('inputFile')
+  inputFile.click()
+  inputFile.onchange = function () {
+    handleFile(this.files)
+    this.value = null
+  }
+}
+
+function handleFile (files) {
+  if (!files.length) return
+  const file = files[0]
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    const text = e.target.result
+    const batch = addObjectFromFile(text)
+    if (batch.errors.length) {
+      message({
+        type: 'error',
+        icon: 'file alternate outline',
+        content: 'Objetos inválidos:<br>'+batch.errors.join('<br>')
+      })
+    } else {
+      message({
+        type: 'success',
+        icon: 'file alternate outline',
+        content: `Arquivo ${file.name} importado com sucesso!`
+      })
+    }
+  }
+  reader.readAsText(file)
+}
+
+function addObjectFromFile (text) {
+  const arr = text.split('\n')
+  const errors = []
+  arr.forEach(txt => {
+    const line = txt.trim().split(',')
+    const number = line[0]
+    const description = line.length > 1 ? line[1].trim() : ''
+    const regex = /^[\w\d]{9,21}$/
+    if (regex.test(number)) {
+      const item = new Item(number, description)
+      saveTrackable(item)
+    } else if (line.join().length) {
+      errors.push(txt)
+    }
+  })
+  return { errors: errors }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

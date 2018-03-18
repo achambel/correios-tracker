@@ -34,12 +34,12 @@ function message (options) {
   if (typeof options === 'object') {
     opt = Object.assign(opt, options)
     const container = document.querySelector('#message-container')
+    container.setAttribute('class', 'ui icon message')
     container.classList.add(opt.type)
-    container.classList.remove('hidden')
 
     const icon = document.querySelector('#message-icon')
-    icon.classList.add(opt.icon)
-
+    icon.setAttribute('class', `icon ${opt.icon}`)
+    
     const content = document.querySelector('#message-content')
     content.innerHTML = opt.content
 
