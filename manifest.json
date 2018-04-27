@@ -4,13 +4,19 @@
   "name": "Correios Tracker",
   "description": "Bem vindo(a) ao Correios Tracker, gerencie e rastreie seus objetos de forma automatizada.",
   "short_name": "Correios Tracker",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "author": "Adriano Chambel M. de Lima <acmlima.softweb@gmail.com>",
   "homepage_url": "https://github.com/achambel/correios-tracker",
 
   "minimum_chrome_version": "55",
 
-  "permissions": ["tabs", "notifications", "storage", "alarms", "https://api.postmon.com.br/"],
+  "permissions": [
+    "tabs",
+    "notifications",
+    "storage",
+    "alarms",
+    "http://www2.correios.com.br/"
+  ],
 
   "background": {
     "scripts": [

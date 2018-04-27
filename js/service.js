@@ -79,9 +79,44 @@ async function tracker (referenceNumber) {
       updateItemWithRestriction(referenceNumber)
       return
     }
+    const response = await crawler(referenceNumber)
+    if (response.historico.length) {
+      trackable(response)
+    } else {
+      trackerFailCallback({status: 404}, referenceNumber)
+    }
+}
 
-    const url = `https://api.postmon.com.br/v1/rastreio/ect/${referenceNumber}`
-    $.get(url, trackerCallback).fail((f) => trackerFailCallback(f, referenceNumber))
+async function crawler (referenceNumber) {
+  const url = 'http://www2.correios.com.br/sistemas/rastreamento/ctrl/ctrlRastreamento.cfm?'
+  const raw = await $.post(url, {objetos: referenceNumber}).then(data => $.parseHTML(data))
+  const response = {
+    codigo: referenceNumber,
+    historico: []
+  }
+  $(raw).find('table.listEvent.sro tbody tr').each((index, elm) => {
+    const td = $(elm).find('td')
+    data = $(td).first().text().replace(/[\r\n]/g, '')
+    eventArr = $(td).last().html().split('<br>')
+    response.historico.push(prepareHistory(data, eventArr))
+  })
+
+   return response
+}
+
+function prepareHistory (td1, td2) {
+  let historico = {};
+  [
+    historico.situacao,
+    historico.detalhes,
+    ...rest
+  ] = td2.map(x => x.replace(/[\n\r]/g, '').trim())
+         .map(y => $($.parseHTML(y)).text())
+
+  const regex = /(^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2})(.*)/g;
+  [_, historico.data, historico.local, ...rest] = regex.exec(td1).map(x => x.trim())
+
+  return historico
 }
 
 async function updateItemWithRestriction (referenceNumber) {
