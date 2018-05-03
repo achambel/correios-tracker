@@ -192,7 +192,11 @@ async function loadTrackItems (transitionItem, sorter) {
 
 async function checkAll() {
   const items = await getActiveItems()
-  items.forEach(item => tracker(item.referenceNumber))
+  items.forEach((item, i) => {
+    setTimeout(() => {
+      tracker(item.referenceNumber)
+    }, 1000 * i)
+  })
 }
 
 function migrateStorageStrategy(key, legacyItems) {

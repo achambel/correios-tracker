@@ -14,11 +14,13 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
 	if (alarm.name === 'checkTrackerItems') {
 		const items = await getActiveItems()
 		if (!items) return
-		items.forEach(item => {
+		items.forEach((item, index) => {
 			const scheduledTime = new Date(alarm.scheduledTime)
 			const nextCheck = new Date(item.nextCheck)
 			if (nextCheck <= scheduledTime) {
-				tracker(item.referenceNumber)
+				setTimeout(() => {
+					tracker(item.referenceNumber)
+				}, 1000 * index)
 			} else {
 				console.info(`Alarm name: ${alarm.name}`)
 				console.info(`Reference number: ${item.referenceNumber}`)
