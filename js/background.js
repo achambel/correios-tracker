@@ -18,9 +18,7 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
 			const scheduledTime = new Date(alarm.scheduledTime)
 			const nextCheck = new Date(item.nextCheck)
 			if (nextCheck <= scheduledTime) {
-				setTimeout(() => {
-					tracker(item.referenceNumber)
-				}, 1000 * index)
+				tracker(item.referenceNumber)
 			} else {
 				console.info(`Alarm name: ${alarm.name}`)
 				console.info(`Reference number: ${item.referenceNumber}`)

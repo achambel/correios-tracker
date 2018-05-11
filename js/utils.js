@@ -135,9 +135,9 @@ function sort (items, prop, order) {
   items.sort((a, b) => {
     const isDate = moment(a[prop]).isValid()
     if (order === 'asc') {
-      return isDate ? moment(a[prop]).isAfter(moment(b[prop])) : a[prop] > b[prop]
+      return isDate ? moment(a[prop]).diff(moment(b[prop])) : a[prop].localeCompare(b[prop])
     } else if (order === 'desc') {
-      return isDate ? moment(b[prop]).isAfter(moment(a[prop])) : b[prop] > a[prop] 
+      return isDate ? moment(b[prop]).diff(moment(a[prop])) : b[prop].localeCompare(a[prop])
     } else {
       throw new Error('You should define the order for sort the items')
     }
@@ -149,9 +149,11 @@ function sort (items, prop, order) {
 function momentFromNow () {
   $('[data-moment]').each(function () {
     const date = this.dataset.moment
+    const formatted = this.dataset.formatted
     if (date) {
       const current = moment(new Date(date))
-      $(this).text(current.fromNow())
+      const text = formatted !== undefined ? current.format('DD/MM/YYYY HH:mm') + ' - ' + current.fromNow() : current.fromNow()
+      $(this).text(text)
     }
   })
 }

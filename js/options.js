@@ -121,7 +121,7 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
                 <td>${item.referenceNumber} (${item.referenceDescription})</td>
                 <td data-moment="${item.checkedAt}"></td>
                 <td><span class="ui small ${statusesClass[item.lastStatus.split(' ').join('_').toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
-                <td data-moment="${hasTracks(item) ? lastTrack(item).date : ''}"></td>
+                <td data-moment="${hasTracks(item) ? lastTrack(item).date : ''}" data-formatted></td>
                 <td>${hasTracks(item) ? lastTrack(item).place : ''}</td>
                 <td>
                     <button class="ui labeled icon inverted tiny green button show-track-history">

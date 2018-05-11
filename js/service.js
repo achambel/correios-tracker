@@ -88,7 +88,7 @@ async function tracker (referenceNumber) {
 }
 
 async function crawler (referenceNumber) {
-  const url = 'http://www2.correios.com.br/sistemas/rastreamento/ctrl/ctrlRastreamento.cfm?'
+  const url = 'http://www2.correios.com.br/sistemas/rastreamento/resultado_semcontent.cfm'
   const raw = await $.post(url, {objetos: referenceNumber}).then(data => $.parseHTML(data))
   const response = {
     codigo: referenceNumber,
@@ -96,7 +96,7 @@ async function crawler (referenceNumber) {
   }
   $(raw).find('table.listEvent.sro tbody tr').each((index, elm) => {
     const td = $(elm).find('td')
-    data = $(td).first().text().replace(/[\r\n]/g, '')
+    data = $(td).first().text().replace(/[\r\n]/g, '').trim()
     eventArr = $(td).last().html().split('<br>')
     response.historico.push(prepareHistory(data, eventArr))
   })
@@ -193,9 +193,7 @@ async function loadTrackItems (transitionItem, sorter) {
 async function checkAll() {
   const items = await getActiveItems()
   items.forEach((item, i) => {
-    setTimeout(() => {
-      tracker(item.referenceNumber)
-    }, 1000 * i)
+    tracker(item.referenceNumber)
   })
 }
 
