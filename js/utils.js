@@ -1,5 +1,5 @@
 function formatDate(date) {
-  
+
   if(!date) return date;
 
   const language = window.navigator.language;
@@ -10,13 +10,13 @@ function formatDate(date) {
 }
 
 function dateTimeReviver(key, value) {
-  
+
   const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-  
+
   if (typeof value === "string" && dateFormat.test(value)) {
         return new Date(value);
   }
-    
+
   return value;
 }
 
@@ -39,7 +39,7 @@ function message (options) {
 
     const icon = document.querySelector('#message-icon')
     icon.setAttribute('class', `icon ${opt.icon}`)
-    
+
     const content = document.querySelector('#message-content')
     content.innerHTML = opt.content
 
@@ -87,7 +87,7 @@ function highlightItem (item) {
   setTimeout(() => {
     tr.classList.remove('recently-updated')
   }, 1000)
-} 
+}
 
 function openOptionsTab (item) {
   chrome.tabs.query({url: chrome.extension.getURL('options.html')}, tabs => {
@@ -117,7 +117,7 @@ function applyTheme (darkTheme) {
 
   if (!link && darkTheme) {
     const tag = document.createElement('link')
-    tag.rel = 'stylesheet' 
+    tag.rel = 'stylesheet'
     tag.type = 'text/css'
     tag.href = href
     document.head.appendChild(tag)
@@ -129,15 +129,15 @@ function applyTheme (darkTheme) {
 }
 
 function sort (items, prop, order) {
-  
+
   if (!items.length) return []
 
   items.sort((a, b) => {
     const isDate = moment(a[prop]).isValid()
     if (order === 'asc') {
-      return isDate ? moment(a[prop]).diff(moment(b[prop])) : a[prop].localeCompare(b[prop])
+      return isDate ? moment(a[prop]).diff(moment(b[prop])) : a[prop] > b[prop]
     } else if (order === 'desc') {
-      return isDate ? moment(b[prop]).diff(moment(a[prop])) : b[prop].localeCompare(a[prop])
+      return isDate ? moment(b[prop]).diff(moment(a[prop])) : b[prop] > a[prop]
     } else {
       throw new Error('You should define the order for sort the items')
     }
