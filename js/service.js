@@ -40,7 +40,7 @@ async function trackable (response) {
       status: h.situacao
     }
   }).sort((a, b) => {
-    return moment(b.date).isAfter(a.date)
+    return new Date(b.date) - new Date(a.date)
   })
 
   let item = new Item(response.codigo)
