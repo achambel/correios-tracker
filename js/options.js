@@ -67,7 +67,7 @@ async function saveReferenceNumber (e) {
   const referenceNumber = referenceNumberElement.value.toUpperCase()
   const referenceDescriptionElement = document.getElementById('referenceDescription')
   const referenceDescription = referenceDescriptionElement.value
-  
+
   let item = new Item(referenceNumber, referenceDescription)
   item = await saveTrackable(item)
 
@@ -75,7 +75,7 @@ async function saveReferenceNumber (e) {
     const content = `Objeto <b>${item.referenceNumber} (${item.referenceDescription})</b> adicionado com sucesso!`
     message({type: 'positive', icon: 'smile', content: content})
   }
-  
+
   referenceNumberElement.value = ''
   referenceDescriptionElement.value = ''
 
@@ -87,6 +87,7 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
   let template = `
     <table class="ui red striped table">
       <thead>
+        <th><input type="checkbox" title="Selecionar todos" id="selectAll"></th>
         <th data-sort="referenceNumber" class="${sorter.prop === 'referenceNumber' ? sorter.order : ''}">Objeto</th>
         <th data-sort="checkedAt" class="${sorter.prop === 'checkedAt' ? sorter.order : ''}">Verificado</th>
         <th data-sort="lastStatus" class="${sorter.prop === 'lastStatus' ? sorter.order : ''}">Status</th>
@@ -101,11 +102,21 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="8">
+          <td colspan="9">
             <button class="ui labeled icon inverted orange button" id="checkAll">
               <i class="alarm icon"></i>
               Verificar todos agora
             </button>
+            <span id="batchAction">
+              <button class="ui labeled icon button" id="archiveAll">
+                <i class="folder open icon"></i>
+                Arquivar selecionados
+              </button>
+              <button class="ui labeled icon inverted red button" id="removeAll">
+                <i class="trash icon"></i>
+                Remover selecionados
+              </button>
+            </span>
           </td>
         </tr>
       </tfoot>
@@ -118,6 +129,7 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
                   class="${item.checkRestriction ? 'check-restriction' : ''}"
                   title="${item.checkRestriction ? 'Não verificado porque havia restrição de hora configurada' : ''}"
                   data-reference-number="${item.referenceNumber}">
+                <td><input class="batch" type="checkbox" value="${item.referenceNumber}"></td>
                 <td>${item.referenceNumber} (${item.referenceDescription})</td>
                 <td data-moment="${item.checkedAt}"></td>
                 <td><span class="ui small ${statusesClass[item.lastStatus.split(' ').join('_').toUpperCase()] || 'primary'} label">${item.lastStatus}</span></td>
@@ -155,7 +167,7 @@ function renderTrackItems(items, sorter = { prop: 'lastStatusDate', order: 'desc
 
   if(lines) {
     template = template.replace(/{{lines}}/g, lines);
-  } 
+  }
   return template;
 }
 
@@ -222,7 +234,11 @@ function showTrackHistory(history) {
 
 function removeTrackable (referenceNumber) {
   playSound('bin')
-  $(`tr[data-reference-number=${referenceNumber}]`).transition('fly right')
+  $(`tr[data-reference-number=${referenceNumber}]`)
+    .transition({
+      animation: 'fly right',
+      onComplete: () => $(`tr[data-reference-number=${referenceNumber}]`).remove()
+    })
   chrome.storage.sync.remove(referenceNumber)
   updateCounters()
 }
@@ -230,7 +246,7 @@ function removeTrackable (referenceNumber) {
 async function updateCounters () {
   const items = await getActiveItems()
   $('#objectCounter').text(items.length)
-  
+
   const archiveds = await getArchivedItems()
   $('#archivedCounter').text(archiveds.length)
 }
@@ -510,13 +526,13 @@ function handleFile (files) {
     if (batch.errors.length) {
       message({
         type: 'error',
-        icon: 'file alternate outline',
+        icon: 'envelope alternate outline',
         content: 'Objetos inválidos:<br>'+batch.errors.join('<br>')
       })
     } else {
       message({
         type: 'success',
-        icon: 'file alternate outline',
+        icon: 'envelope alternate outline',
         content: `Arquivo ${file.name} importado com sucesso!`
       })
     }
@@ -565,7 +581,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 document.getElementById('theme').addEventListener('click', async (e) => {
   const settings = await getSettings()
   settings.darkTheme = e.target.checked
-  
+
   const save = {}
   save[defaultSettings.name] = JSON.stringify(settings)
   chrome.storage.sync.set(save)

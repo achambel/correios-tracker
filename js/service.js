@@ -50,7 +50,7 @@ async function trackable (response) {
   item.checkedAt = new Date()
   item.tracks = tracks
   item = await saveTrackable(item)
-  
+
   const settings = await getSettings()
   if (settings.showNotification && item.statusChanged) {
     showNotification(item)
@@ -139,7 +139,7 @@ async function saveTrackable (item) {
     const regex = /^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}$/
     const legacyPattern = regex.test(itemExisting.lastStatusDate)
     if (itemExisting.lastStatusDate) {
-      const lastStatusDate = legacyPattern 
+      const lastStatusDate = legacyPattern
         ? moment(itemExisting.lastStatusDate, 'DD/MM/YYYY HH:mm')
         : moment(itemExisting.lastStatusDate)
       const currentStatusDate = moment(item.lastStatusDate)
@@ -165,7 +165,7 @@ async function saveTrackable (item) {
       return resolve(item)
     })
   })
-  
+
 }
 
 async function loadTrackItems (transitionItem, sorter) {
@@ -183,11 +183,42 @@ async function loadTrackItems (transitionItem, sorter) {
     updateCounters()
     momentFromNow()
     sortItems()
+
+    const batch = document.querySelectorAll('.batch')
+    const batchAction = document.getElementById('batchAction')
+
+    batch.forEach(elm => {
+      elm.addEventListener('input', e => {
+        const totalSelected = document.querySelectorAll('.batch:checked').length
+        batchAction.style.display = totalSelected ? 'inline' : 'none'
+
+        e.target.checked
+            ? e.target.parentElement.parentElement.classList.add('active-batch')
+            : e.target.parentElement.parentElement.classList.remove('active-batch')
+      })
+    })
+
+    $('#selectAll').click(e => {
+      var event = new Event('input')
+      batch.forEach(elm => {
+        elm.checked = e.target.checked
+        elm.dispatchEvent(event)
+      })
+    })
+
+    $('#archiveAll').click(_ => batchActions(archiveTrackable))
+    $('#removeAll').click(_ => batchActions(removeTrackable))
+
   }
 
   if (transitionItem) {
     highlightItem(transitionItem)
   }
+}
+
+function batchActions(fn) {
+  const batches = document.querySelectorAll('.batch:checked')
+  batches.forEach(item => fn(item.value))
 }
 
 async function checkAll() {
@@ -227,7 +258,7 @@ async function getItems () {
   return new Promise((resolve, reject) => {
     chrome.storage.sync.get(null, storage => {
       const regex = /^[\w\d]{9,21}$/
-      
+
       for (const [key, value] of Object.entries(storage)) {
         if (regex.test(key)) {
           const item = JSON.parse(value, dateTimeReviver);

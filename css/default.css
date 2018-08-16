@@ -66,3 +66,19 @@ footer {
   float: right;
   margin: 15px;
 }
+
+.batch {
+  display: none;
+}
+
+tr[data-reference-number]:hover .batch, .batch:checked {
+  display: inline-block;
+}
+
+.active-batch {
+  background: #edf4fd !important;
+}
+
+#batchAction {
+  display: none;
+}

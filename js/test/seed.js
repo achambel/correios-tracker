@@ -1,7 +1,7 @@
 chrome.storage.sync.clear();
 
 var trackItems = [
-  new Item('RS901944672CH', 'Cabo C 3m'), 
+  new Item('RS901944672CH', 'Cabo C 3m'),
   new Item('RX193810496CH', 'Case Jogo'),
   new Item('RY595521904CN', 'Capa Switch'),
   new Item('RL744535326CN', 'Pendrive'),
@@ -15,3 +15,16 @@ var trackItems = [
 var save = {'trackItems': JSON.stringify(trackItems)};
 
 chrome.storage.sync.set(save, () => console.log('saved!'));
+
+var items = [];
+for (i = 1; i < 101; i++) {
+  item = new Item('AA1234567' + i + 'UK', 'teste ' + i);
+  items.push(item);
+};
+
+items.forEach((item, index) => {
+  setTimeout(() => {
+    console.log('saving index ' + index);
+    saveTrackable(item);
+  }, 500 * index);
+});
