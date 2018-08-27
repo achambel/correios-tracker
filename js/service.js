@@ -88,7 +88,7 @@ async function tracker (referenceNumber) {
 }
 
 async function crawler (referenceNumber) {
-  const url = 'http://www2.correios.com.br/sistemas/rastreamento/resultado_semcontent.cfm'
+  const url = 'https://www2.correios.com.br/sistemas/rastreamento/resultado_semcontent.cfm'
   const raw = await $.post(url, {objetos: referenceNumber}).then(data => $.parseHTML(data))
   const response = {
     codigo: referenceNumber,
