@@ -1,4 +1,4 @@
-const Item = function(referenceNumber, referenceDescription) {
+const Item = function (referenceNumber, referenceDescription) {
   const now = new Date();
   return {
     referenceNumber: referenceNumber,
@@ -18,7 +18,7 @@ const Item = function(referenceNumber, referenceDescription) {
       now.getHours(),
       now.getMinutes()
     ),
-    setNextCheck: function(settings) {
+    setNextCheck: function (settings) {
       const baseDate = this.checkedAt || new Date();
 
       if (settings.checkUnitInterval === "minute") {
@@ -30,7 +30,7 @@ const Item = function(referenceNumber, referenceDescription) {
       } else if (settings.checkUnitInterval === "day") {
         this.nextCheck.setDate(baseDate.getDate() + settings.checkInterval);
       }
-    }
+    },
   };
 };
 
@@ -40,12 +40,12 @@ function trackerCallback(response) {
 
 async function trackable(response) {
   const tracks = response.historico
-    .map(h => {
+    .map((h) => {
       return {
-        date: moment(h.data, "DD/MM/YYYY HH:mm").toISOString(),
+        date: moment(h.data, "YYYY/MM/DD HH:mm:ss").toISOString(),
         details: h.detalhes,
         place: h.local,
-        status: h.situacao
+        status: h.situacao,
       };
     })
     .sort((a, b) => {
@@ -95,44 +95,29 @@ async function tracker(referenceNumber) {
 }
 
 async function crawler(referenceNumber) {
-  const url =
-    "https://www2.correios.com.br/sistemas/rastreamento/resultado.cfm";
-  const raw = await $.post(url, { objetos: referenceNumber }).then(data =>
-    $.parseHTML(data)
-  );
-  const response = {
-    codigo: referenceNumber,
-    historico: []
-  };
-  $(raw)
-    .find("table.listEvent.sro tbody tr")
-    .each((index, elm) => {
-      const td = $(elm).find("td");
-      data = $(td)
-        .first()
-        .text()
-        .replace(/[\r\n]/g, "")
-        .trim();
-      eventArr = $(td)
-        .last()
-        .html()
-        .split("<br>");
-      response.historico.push(prepareHistory(data, eventArr));
-    });
+  const url = `https://proxyapp.correios.com.br/v1/sro-rastro/${referenceNumber}`;
+  const { objetos } = await $.get(url);
+  const [item] = objetos || [{}];
 
-  return response;
+  const objeto = {
+    codigo: referenceNumber,
+    historico: item.eventos ? prepareHistory(item.eventos) : [],
+  };
+
+  return objeto;
 }
 
-function prepareHistory(td1, td2) {
-  let historico = {};
-  [historico.situacao, historico.detalhes, ...rest] = td2
-    .map(x => x.replace(/[\n\r]/g, "").trim())
-    .map(y => $($.parseHTML(y)).text());
-
-  const regex = /(^\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2})(.*)/g;
-  [_, historico.data, historico.local, ...rest] = regex
-    .exec(td1)
-    .map(x => x.trim());
+function prepareHistory(eventos) {
+  const historico = eventos.map((e) => ({
+    data: e.dtHrCriado,
+    situacao: e.descricao,
+    local: e.unidade
+      ? `${e.unidade.tipo}: ${e.unidade.endereco.cidade} / ${e.unidade.endereco.uf}`
+      : "",
+    detalhes: e.unidadeDestino
+      ? `${e.unidadeDestino.tipo}: ${e.unidadeDestino.endereco.cidade} / ${e.unidadeDestino.endereco.uf}`
+      : "",
+  }));
 
   return historico;
 }
@@ -181,7 +166,7 @@ async function saveTrackable(item) {
         message({
           type: "negative",
           icon: "frown",
-          content: chrome.runtime.lastError.message
+          content: chrome.runtime.lastError.message,
         });
         return reject(false);
       }
@@ -199,16 +184,18 @@ async function loadTrackItems(transitionItem, sorter) {
   if (trackItems) {
     trackItems.innerHTML = renderTrackItems(items, sorter);
     $(".ui.dropdown").dropdown();
-    $(".show-track-history").click(e =>
+    $(".show-track-history").click((e) =>
       loadTrackHistory(
         e.target.parentElement.parentElement.dataset.referenceNumber,
         showTrackHistory
       )
     );
-    $(".remove-trackable").click(e => removeTrackable(e.target.dataset.number));
-    $(".check-now").click(e => tracker(e.target.dataset.number));
+    $(".remove-trackable").click((e) =>
+      removeTrackable(e.target.dataset.number)
+    );
+    $(".check-now").click((e) => tracker(e.target.dataset.number));
     $("#checkAll").click(checkAll);
-    $(".archive-trackable").click(e =>
+    $(".archive-trackable").click((e) =>
       archiveTrackable(e.target.dataset.number)
     );
     updateCounters();
@@ -218,10 +205,10 @@ async function loadTrackItems(transitionItem, sorter) {
     const batch = document.querySelectorAll(".batch");
     const batchAction = document.getElementById("batchAction");
 
-    batch.forEach(elm => {
-      elm.addEventListener("input", e => {
-        const totalSelected = document.querySelectorAll(".batch:checked")
-          .length;
+    batch.forEach((elm) => {
+      elm.addEventListener("input", (e) => {
+        const totalSelected =
+          document.querySelectorAll(".batch:checked").length;
         batchAction.style.display = totalSelected ? "inline" : "none";
 
         e.target.checked
@@ -232,16 +219,16 @@ async function loadTrackItems(transitionItem, sorter) {
       });
     });
 
-    $("#selectAll").click(e => {
+    $("#selectAll").click((e) => {
       var event = new Event("input");
-      batch.forEach(elm => {
+      batch.forEach((elm) => {
         elm.checked = e.target.checked;
         elm.dispatchEvent(event);
       });
     });
 
-    $("#archiveAll").click(_ => batchActions(archiveTrackable));
-    $("#removeAll").click(_ => batchActions(removeTrackable));
+    $("#archiveAll").click((_) => batchActions(archiveTrackable));
+    $("#removeAll").click((_) => batchActions(removeTrackable));
   }
 
   if (transitionItem) {
@@ -251,14 +238,12 @@ async function loadTrackItems(transitionItem, sorter) {
 
 function batchActions(fn) {
   const batches = document.querySelectorAll(".batch:checked");
-  batches.forEach(item => fn(item.value));
+  batches.forEach((item) => fn(item.value));
 }
 
 async function checkAll() {
   const items = await getActiveItems();
-  items.forEach((item, i) => {
-    tracker(item.referenceNumber);
-  });
+  Promise.allSettled(items.map((item) => tracker(item.referenceNumber)));
 }
 
 function migrateStorageStrategy(key, legacyItems) {
@@ -276,7 +261,7 @@ function migrateStorageStrategy(key, legacyItems) {
 
 async function getSettings() {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("settings", storage => {
+    chrome.storage.sync.get("settings", (storage) => {
       if (storage.settings) {
         resolve(JSON.parse(storage.settings, dateTimeReviver));
       } else {
@@ -289,7 +274,7 @@ async function getSettings() {
 async function getItems() {
   let trackItems = [];
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(null, storage => {
+    chrome.storage.sync.get(null, (storage) => {
       const regex = /^[\w\d]{9,21}$/;
 
       for (const [key, value] of Object.entries(storage)) {
@@ -308,7 +293,7 @@ async function getItems() {
 
 async function getLegacyItems() {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("trackItems", storage => {
+    chrome.storage.sync.get("trackItems", (storage) => {
       if (storage.trackItems) {
         resolve(JSON.parse(storage.trackItems));
       } else {
@@ -320,7 +305,7 @@ async function getLegacyItems() {
 
 async function getItem(referenceNumber) {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(referenceNumber, storage => {
+    chrome.storage.sync.get(referenceNumber, (storage) => {
       if (storage[referenceNumber]) {
         resolve(JSON.parse(storage[referenceNumber]));
       } else {
@@ -334,7 +319,7 @@ async function getActiveItems(
   sorter = { prop: "lastStatusDate", order: "desc" }
 ) {
   let items = await getItems();
-  items = items.filter(i => !i.archived);
+  items = items.filter((i) => !i.archived);
   if (typeof sorter === "object") {
     items = sort(items, sorter.prop, sorter.order);
   }
@@ -343,5 +328,5 @@ async function getActiveItems(
 
 async function getArchivedItems() {
   const items = await getItems();
-  return items.filter(i => i.archived);
+  return items.filter((i) => i.archived);
 }
