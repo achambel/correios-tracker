@@ -16,13 +16,14 @@ import {
   applyTheme,
   noObjects,
   momentFromNow,
-  statusesClass,
   hasTracks,
   lastTrack,
   playSound,
   message,
   highlightItem,
 } from "./utils.js";
+
+import { messageActions, statusesClass } from "./constants.js";
 
 // Google Analytics
 var _gaq = _gaq || [];
@@ -61,7 +62,7 @@ async function initializeSettings() {
 
 async function checkAll() {
   const items = await getActiveItems();
-  Promise.allSettled(items.map((item) => doTracker(item.referenceNumber)));
+  await Promise.all(items.map((item) => doTracker(item.referenceNumber)));
 }
 
 function saveSettings(e) {
@@ -188,9 +189,7 @@ function renderTrackItems(
                 <td>${item.referenceNumber} (${item.referenceDescription})</td>
                 <td data-moment="${item.checkedAt}"></td>
                 <td><span class="ui small ${
-                  statusesClass[
-                    item.lastStatus.split(" ").join("_").toUpperCase()
-                  ] || "primary"
+                  statusesClass[item.lastStatus] || "primary"
                 } label">${item.lastStatus}</span></td>
                 <td data-moment="${
                   hasTracks(item) ? lastTrack(item).date : ""
@@ -263,9 +262,7 @@ function renderTrackHistory(item) {
                 <td data-moment="${moment(track.date)}"></td>
                 <td>
                   <span class="ui small ${
-                    statusesClass[
-                      track.status.split(" ").join("_").toUpperCase()
-                    ] || "primary"
+                    statusesClass[track.status] || "primary"
                   } label">
                     ${track.status}
                   </span>
@@ -378,9 +375,7 @@ async function renderArchivedItems() {
                 <td>${item.referenceNumber}(${item.referenceDescription})</td>
                 <td>
                   <span class="ui small ${
-                    statusesClass[
-                      item.lastStatus.split(" ").join("_").toUpperCase()
-                    ] || "primary"
+                    statusesClass[item.lastStatus] || "primary"
                   } label">
                     ${item.lastStatus}
                   </span>
@@ -680,7 +675,11 @@ async function loadTrackItems(transitionItem, sorter) {
     $(".remove-trackable").click((e) =>
       removeTrackable(e.target.dataset.number)
     );
-    $(".check-now").click((e) => doTracker(e.target.dataset.number));
+    $(".check-now").click(async (e) => {
+      const referenceNumber = e.target.dataset.number;
+      await doTracker(referenceNumber);
+      highlightItemAfter({ referenceNumber });
+    });
     $("#checkAll").click(checkAll);
     $(".archive-trackable").click((e) =>
       archiveTrackable(e.target.dataset.number)
@@ -734,13 +733,13 @@ async function doTracker(referenceNumber) {
   if (await willNotify(item)) {
     notify(item);
   }
+
+  renderActiveItems();
 }
 
 async function notify(item = new Item()) {
   createNotification(item);
   playSound("notification");
-  renderActiveItems();
-  highlightItemAfter({ referenceNumber });
 }
 
 function highlightItemAfter({ referenceNumber, ttl = 500 }) {
@@ -774,3 +773,9 @@ $("#active-items-link").click(() => renderActiveItems());
 $("#settings-link").click(() => renderSettings());
 
 $("#help-link").click(() => $("#help-modal").modal("show"));
+
+chrome.runtime.onMessage.addListener((req, _sender, _response) => {
+  if (req.action === messageActions.RELOAD_ACTIVE_ITEMS) {
+    renderActiveItems();
+  }
+});

@@ -26,7 +26,9 @@ export async function crawler({ referenceNumber, user_stats }) {
   let objeto = {
     codigo: referenceNumber,
     historico: [],
+    lastStatus: "",
   };
+
   let response;
 
   try {
@@ -42,15 +44,19 @@ export async function crawler({ referenceNumber, user_stats }) {
 
     if (!response?.ok) {
       console.warn(`Server returned a non-success status`, response);
+      objeto.lastStatus = `Erro ao verificar status do objeto: ${response.status} - ${response.statusText}`;
       return objeto;
     }
 
     const item = await response.json();
     objeto.historico = item.eventos ? prepareHistory(item.eventos) : [];
+    objeto.lastStatus = item.mensagem;
 
     return objeto;
   } catch (error) {
     console.error("Error on getting objeto from server", error);
+    objeto.lastStatus = `Não foi possível verificar o status do objeto: ${error.message}`;
+    return objeto;
   }
 }
 

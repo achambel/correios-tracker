@@ -75,7 +75,7 @@ export async function getCurrentTab() {
   return tab;
 }
 
-function isStatusChanged(existingStatusDate = "", currentStatusDate = "") {
+function isStatusChanged({ existingStatusDate, currentStatusDate }) {
   if (existingStatusDate === "" && currentStatusDate) return true;
 
   return Date.parse(currentStatusDate) > Date.parse(existingStatusDate);
@@ -90,10 +90,10 @@ export async function saveTrackable(item) {
   const itemExisting = await getItem(item.referenceNumber);
 
   if (itemExisting) {
-    item.statusChanged = isStatusChanged(
-      itemExisting.lastStatusDate,
-      item.lastStatusDate
-    );
+    item.statusChanged = isStatusChanged({
+      existingStatusDate: itemExisting.lastStatusDate,
+      currentStatusDate: item.lastStatusDate,
+    });
 
     item.referenceDescription = itemExisting.referenceDescription;
     item = Object.assign(itemExisting, item);
@@ -107,7 +107,13 @@ export async function saveTrackable(item) {
 }
 
 export async function trackable(response) {
-  const tracks = response.historico
+  const { codigo, lastStatus, historico = [] } = response;
+
+  let item = new Item(codigo);
+  item.lastStatus = lastStatus;
+  item.checkedAt = new Date();
+
+  const tracks = historico
     .map((h) => {
       return {
         date: h.data,
@@ -120,33 +126,17 @@ export async function trackable(response) {
       return new Date(b.date) - new Date(a.date);
     });
 
-  let item = new Item(response.codigo);
-  item.lastStatus = tracks[0].status;
-  item.lastStatusDate = tracks[0].date;
-  item.lastPlace = tracks[0].place;
-  item.checkedAt = new Date();
   item.tracks = tracks;
+
+  if (tracks.length) {
+    item.lastStatus = tracks[0].status;
+    item.lastStatusDate = tracks[0].date;
+    item.lastPlace = tracks[0].place;
+  }
+
   item = await saveTrackable(item);
 
   return item;
-}
-
-async function trackerFailCallback(fail, referenceNumber) {
-  let item = new Item(referenceNumber);
-  item.checkedAt = new Date();
-
-  switch (fail.status) {
-    case 403:
-      item.lastStatus = "Acesso remoto negado";
-      break;
-    case 404:
-      item.lastStatus = "Objeto não encontrado";
-      break;
-    default:
-      item.lastStatus = "";
-  }
-
-  await saveTrackable(item);
 }
 
 async function updateItemWithRestriction(referenceNumber) {
@@ -170,12 +160,9 @@ export async function tracker(referenceNumber) {
   }
   const user_stats = await getUserStats();
   const response = await crawler({ referenceNumber, user_stats });
-  if (response.historico.length) {
-    const item = await trackable(response);
-    return item;
-  } else {
-    trackerFailCallback({ status: 404 }, referenceNumber);
-  }
+  const item = await trackable(response);
+
+  return item;
 }
 
 export async function willNotify(item = new Item()) {

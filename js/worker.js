@@ -5,6 +5,7 @@ import {
   willNotify,
   createNotification,
 } from "./backend.js";
+import { messageActions } from "./constants.js";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.tabs.create({ url: chrome.runtime.getURL("../options.html") });
@@ -26,15 +27,28 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
       if (nextCheck <= scheduledTime) {
         const actualItem = await tracker(item.referenceNumber);
         await notifyIfItem(actualItem);
-      } else {
-        console.info(`Alarm name: ${alarm.name}`);
-        console.info(
-          `It's ${scheduledTime} and next checking should be at ${item.nextCheck}`
-        );
       }
     }
+    sendMessage(messageActions.RELOAD_ACTIVE_ITEMS);
   }
 });
+
+async function sendMessage(message) {
+  const tab = await getCurrentTab();
+
+  if (!tab) {
+    console.log(
+      "No active tabs at the moment. Will not send this message:",
+      message
+    );
+    return;
+  }
+
+  if (tab.status !== chrome.tabs.TabStatus.COMPLETE) return;
+
+  console.log("OK, sending message to tab ", tab, message);
+  chrome.tabs.sendMessage(tab.id, { action: message });
+}
 
 async function notifyIfItem(item) {
   if (!item) return;

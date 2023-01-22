@@ -1,9 +1,11 @@
+import { statuses } from "./constants.js";
+
 export const Item = function (referenceNumber, referenceDescription) {
   const now = new Date();
   return {
     referenceNumber: referenceNumber,
     referenceDescription: referenceDescription,
-    lastStatus: "Ainda não verificado",
+    lastStatus: statuses.NAO_VERIFICADO,
     lastStatusDate: "",
     lastPlace: "",
     statusChanged: false,

@@ -25,10 +25,6 @@ export function dateTimeReviver(_key, value) {
   return value;
 }
 
-export const statusesClass = {
-  OBJETO_ENTREGUE_AO_DESTINATÁRIO: "green",
-};
-
 export function message(options) {
   let opt = {
     type: "info",
