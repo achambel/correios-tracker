@@ -44,11 +44,7 @@ async function notifyIfItem(item) {
   }
 }
 
-chrome.action.onClicked.addListener(() => {
-  chrome.tabs.create({ url: chrome.runtime.getURL("../options.html") });
-});
-
-chrome.notifications.onClicked.addListener(async () => {
+async function showTab() {
   const tab = await getCurrentTab();
 
   if (tab) {
@@ -57,4 +53,8 @@ chrome.notifications.onClicked.addListener(async () => {
   }
 
   chrome.tabs.create({ url: chrome.runtime.getURL("../options.html") });
-});
+}
+
+chrome.action.onClicked.addListener(async () => await showTab());
+
+chrome.notifications.onClicked.addListener(async () => await showTab());
