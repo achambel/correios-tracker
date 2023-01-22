@@ -4,6 +4,8 @@ import {
   tracker,
   willNotify,
   createNotification,
+  getUserProfile,
+  sendMessage,
 } from "./backend.js";
 import { messageActions } from "./constants.js";
 
@@ -18,6 +20,12 @@ chrome.alarms.create("checkTrackerItems", {
 
 chrome.alarms.onAlarm.addListener(async function (alarm) {
   if (alarm.name === "checkTrackerItems") {
+    const user = await getUserProfile();
+    if (!user) {
+      sendMessage(messageActions.USER_NOT_FOUND);
+      return;
+    }
+
     const items = await getActiveItems();
     if (!items) return;
 
@@ -32,23 +40,6 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
     sendMessage(messageActions.RELOAD_ACTIVE_ITEMS);
   }
 });
-
-async function sendMessage(message) {
-  const tab = await getCurrentTab();
-
-  if (!tab) {
-    console.log(
-      "No active tabs at the moment. Will not send this message:",
-      message
-    );
-    return;
-  }
-
-  if (tab.status !== chrome.tabs.TabStatus.COMPLETE) return;
-
-  console.log("OK, sending message to tab ", tab, message);
-  chrome.tabs.sendMessage(tab.id, { action: message });
-}
 
 async function notifyIfItem(item) {
   if (!item) return;

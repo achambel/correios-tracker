@@ -10,4 +10,5 @@ export const statusesClass = {
 
 export const messageActions = {
   RELOAD_ACTIVE_ITEMS: "reloadActiveItems",
+  USER_NOT_FOUND: "userNotFound",
 };

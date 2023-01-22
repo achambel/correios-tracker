@@ -10,6 +10,8 @@ import {
   createNotification,
   tracker,
   willNotify,
+  getUserProfile,
+  sendMessage,
 } from "./backend.js";
 
 import {
@@ -728,6 +730,12 @@ function batchActions(fn) {
 }
 
 async function doTracker(referenceNumber) {
+  const user = await getUserProfile();
+  if (!user) {
+    showNoUserModal();
+    return;
+  }
+
   const item = await tracker(referenceNumber);
 
   if (await willNotify(item)) {
@@ -744,6 +752,10 @@ async function notify(item = new Item()) {
 
 function highlightItemAfter({ referenceNumber, ttl = 500 }) {
   setTimeout(() => highlightItem(referenceNumber), ttl);
+}
+
+function showNoUserModal() {
+  $("#nouser-modal").modal("show");
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -777,5 +789,7 @@ $("#help-link").click(() => $("#help-modal").modal("show"));
 chrome.runtime.onMessage.addListener((req, _sender, _response) => {
   if (req.action === messageActions.RELOAD_ACTIVE_ITEMS) {
     renderActiveItems();
+  } else if (req.action === messageActions.USER_NOT_FOUND) {
+    showNoUserModal();
   }
 });

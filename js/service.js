@@ -8,20 +8,8 @@ function getTrackerAuthHeader() {
   return btoa(toEncode);
 }
 
-async function getUserProfile() {
-  return chrome.identity.getProfileUserInfo();
-}
-
-export async function crawler({ referenceNumber, user_stats }) {
+export async function crawler({ referenceNumber, userData }) {
   const url = `https://trackerit.fly.dev/api/tracker/correios/${referenceNumber}`;
-  const { email, id } = await getUserProfile();
-  const data = {
-    user: {
-      name: id,
-      email,
-    },
-    user_stats,
-  };
 
   let objeto = {
     codigo: referenceNumber,
@@ -39,7 +27,7 @@ export async function crawler({ referenceNumber, user_stats }) {
         "x-tracker-auth": getTrackerAuthHeader(),
       },
       method: "POST",
-      body: JSON.stringify(data),
+      body: JSON.stringify(userData),
     });
 
     if (!response?.ok) {

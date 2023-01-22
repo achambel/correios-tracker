@@ -66,6 +66,15 @@ export function createNotification(item = {}) {
     message: `${lastStatus}\nVerificado às ${checkedAt}`,
   });
 }
+
+export function createGenericNotification({ title, message }) {
+  chrome.notifications.create({
+    type: "basic",
+    iconUrl: "../256x256.png",
+    title,
+    message,
+  });
+}
 export async function getCurrentTab() {
   let queryOptions = {
     url: `chrome-extension://${chrome.runtime.id}/options.html`,
@@ -158,8 +167,11 @@ export async function tracker(referenceNumber) {
     updateItemWithRestriction(referenceNumber);
     return;
   }
+  const user = await getUserProfile();
   const user_stats = await getUserStats();
-  const response = await crawler({ referenceNumber, user_stats });
+  const userData = { user, user_stats };
+
+  const response = await crawler({ referenceNumber, userData });
   const item = await trackable(response);
 
   return item;
@@ -178,4 +190,32 @@ async function getUserStats() {
     run_every: `${settings.checkInterval} ${settings.checkUnitInterval}`,
     total_objetos: total_objetos.length,
   };
+}
+
+export async function getUserProfile() {
+  const { email, id } = (await chrome.identity.getProfileUserInfo()) || {};
+
+  if (!email || !id) return;
+
+  return {
+    email,
+    name: id,
+  };
+}
+
+export async function sendMessage(message) {
+  const tab = await getCurrentTab();
+
+  if (!tab) {
+    console.log(
+      "No active tabs at the moment. Will not send this message:",
+      message
+    );
+    return;
+  }
+
+  if (tab.status !== chrome.tabs.TabStatus.COMPLETE) return;
+
+  console.log("OK, sending message to tab ", tab, message);
+  chrome.tabs.sendMessage(tab.id, { action: message });
 }
