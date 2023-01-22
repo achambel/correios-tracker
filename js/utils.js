@@ -150,3 +150,7 @@ export function hasTracks(item) {
 export function lastTrack(item) {
   return item.tracks[0];
 }
+
+export function isEmpty(obj = {}) {
+  return Object.keys(obj).length === 0;
+}

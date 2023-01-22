@@ -3,7 +3,7 @@ export const Item = function (referenceNumber, referenceDescription) {
   return {
     referenceNumber: referenceNumber,
     referenceDescription: referenceDescription,
-    lastStatus: "",
+    lastStatus: "Ainda não verificado",
     lastStatusDate: "",
     lastPlace: "",
     statusChanged: false,

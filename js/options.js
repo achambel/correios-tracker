@@ -248,7 +248,7 @@ function renderTrackHistory(item) {
         <th>Duração</th>
         <th>Status</th>
         <th>Local</th>
-        <th>Detalhes</th>
+        <th>Unidade Destino</th>
       </thead>
       <tbody>
         {{lines}}
@@ -305,19 +305,6 @@ function showTrackHistory(history) {
   $("#message-modal").modal("show");
 }
 
-async function removeTrackable(referenceNumber) {
-  playSound("bin");
-  $(`tr[data-reference-number=${referenceNumber}]`).transition({
-    animation: "fly right",
-    onComplete: () =>
-      $(`tr[data-reference-number=${referenceNumber}]`).remove(),
-  });
-  const item = await getItem(referenceNumber);
-  await chrome.storage.sync.remove(referenceNumber);
-  updateCounters();
-  item.archived ? renderArchivedItems() : renderActiveItems();
-}
-
 async function updateCounters() {
   const items = await getActiveItems();
   $("#objectCounter").text(items.length);
@@ -326,26 +313,45 @@ async function updateCounters() {
   $("#archivedCounter").text(archiveds.length);
 }
 
+async function removeTrackable(referenceNumber) {
+  playSound("bin");
+  $(`tr[data-reference-number=${referenceNumber}]`).transition({
+    animation: "fly right",
+    onComplete: async () => {
+      $(`tr[data-reference-number=${referenceNumber}]`).remove();
+      const item = await getItem(referenceNumber);
+      await chrome.storage.sync.remove(referenceNumber);
+      updateCounters();
+      item.archived ? renderArchivedItems() : renderActiveItems();
+    },
+  });
+}
+
 async function archiveTrackable(referenceNumber) {
-  $(`tr[data-reference-number=${referenceNumber}]`).transition("fly right");
-  const item = await getItem(referenceNumber);
-  item.archived = true;
   playSound("archive");
-  setTimeout(async () => {
-    await saveTrackable(item);
-    updateCounters();
-    renderActiveItems();
-  }, 500);
+  $(`tr[data-reference-number=${referenceNumber}]`).transition({
+    animation: "fly right",
+    onComplete: async () => {
+      const item = await getItem(referenceNumber);
+      item.archived = true;
+      await saveTrackable(item);
+      updateCounters();
+    },
+  });
 }
 
 async function restoreTrackable(referenceNumber) {
-  $(`tr[data-reference-number=${referenceNumber}]`).transition("fly right");
-  let item = await getItem(referenceNumber);
-  item.archived = false;
-  item = await saveTrackable(item);
   playSound("restore");
-  updateCounters();
-  renderArchivedItems();
+  $(`tr[data-reference-number=${referenceNumber}]`).transition({
+    animation: "fly right",
+    onComplete: async () => {
+      let item = await getItem(referenceNumber);
+      item.archived = false;
+      item = await saveTrackable(item);
+      updateCounters();
+      renderArchivedItems();
+    },
+  });
 }
 
 async function renderArchivedItems() {

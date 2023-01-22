@@ -4,7 +4,7 @@
   "name": "Correios Tracker",
   "description": "Bem vindo(a) ao Correios Tracker, gerencie e rastreie seus objetos de forma automatizada.",
   "short_name": "Correios Tracker",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "author": "Adriano Chambel <acmlima.softweb@gmail.com>",
   "homepage_url": "https://github.com/achambel/correios-tracker",
 

@@ -1,5 +1,7 @@
+import { isEmpty } from "./utils.js";
+
 function getTrackerAuthHeader() {
-  const app_id = chrome.runtime.id;
+  const app_id = "nemepngjloclnhiflpcgkcbggnfbhjni"; //chrome.runtime.id;
   const client_type = "chrome_extension";
 
   const toEncode = `app_id=${app_id}&client_type=${client_type}`;
@@ -56,13 +58,25 @@ function prepareHistory(eventos) {
   const historico = eventos.map((e) => ({
     data: e.dtHrCriado,
     situacao: e.descricao,
-    local: e.unidade
-      ? `${e.unidade.tipo}: ${e.unidade.endereco.cidade} / ${e.unidade.endereco.uf}`
-      : "",
-    detalhes: e.unidadeDestino
-      ? `${e.unidadeDestino.tipo}: ${e.unidadeDestino.endereco.cidade} / ${e.unidadeDestino.endereco.uf}`
-      : "",
+    local: getLocal(e.unidade),
+    detalhes: getLocal(e.unidadeDestino),
   }));
 
   return historico;
+}
+
+function getLocal(unidade) {
+  if (!unidade) return "";
+
+  if (isEmpty(unidade.endereco)) {
+    return `${unidade.tipo}: ${unidade.nome}`;
+  }
+
+  const { logradouro, numero, bairro, cep, cidade, uf } = unidade.endereco;
+
+  const endereco = [logradouro, numero, bairro, cep, cidade, uf]
+    .filter((item) => item)
+    .join(", ");
+
+  return `${unidade.tipo}: ${endereco}`;
 }
