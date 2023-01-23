@@ -13,6 +13,7 @@ export const Item = function (referenceNumber, referenceDescription) {
     checkedAt: "",
     checkRestriction: false,
     archived: false,
+    isSuccess: false,
     nextCheck: new Date(
       now.getFullYear(),
       now.getMonth(),

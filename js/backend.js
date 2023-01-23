@@ -104,8 +104,12 @@ export async function saveTrackable(item) {
       currentStatusDate: item.lastStatusDate,
     });
 
+    if (!item.isSuccess) {
+      item.tracks = itemExisting.tracks;
+    }
+
     item.referenceDescription = itemExisting.referenceDescription;
-    item = Object.assign(itemExisting, item);
+    item = { ...itemExisting, ...item };
   }
 
   const save = {};
@@ -116,13 +120,27 @@ export async function saveTrackable(item) {
 }
 
 export async function trackable(response) {
-  const { codigo, lastStatus, historico = [] } = response;
+  const { referenceNumber, isSuccess, lastStatus, eventos = [] } = response;
 
-  let item = new Item(codigo);
+  let item = new Item(referenceNumber);
   item.lastStatus = lastStatus;
   item.checkedAt = new Date();
+  item.isSuccess = isSuccess;
 
-  const tracks = historico
+  if (eventos.length) {
+    item.tracks = prepareTracks(eventos);
+    item.lastStatus = item.tracks[0].status;
+    item.lastStatusDate = item.tracks[0].date;
+    item.lastPlace = item.tracks[0].place;
+  }
+
+  item = await saveTrackable(item);
+
+  return item;
+}
+
+function prepareTracks(eventos = []) {
+  return eventos
     .map((h) => {
       return {
         date: h.data,
@@ -134,18 +152,6 @@ export async function trackable(response) {
     .sort((a, b) => {
       return new Date(b.date) - new Date(a.date);
     });
-
-  item.tracks = tracks;
-
-  if (tracks.length) {
-    item.lastStatus = tracks[0].status;
-    item.lastStatusDate = tracks[0].date;
-    item.lastPlace = tracks[0].place;
-  }
-
-  item = await saveTrackable(item);
-
-  return item;
 }
 
 async function updateItemWithRestriction(referenceNumber) {

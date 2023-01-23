@@ -1,7 +1,8 @@
+import { Item } from "./item.js";
 import { isEmpty } from "./utils.js";
 
 function getTrackerAuthHeader() {
-  const app_id = "nemepngjloclnhiflpcgkcbggnfbhjni"; //chrome.runtime.id;
+  const app_id = chrome.runtime.id;
   const client_type = "chrome_extension";
 
   const toEncode = `app_id=${app_id}&client_type=${client_type}`;
@@ -11,11 +12,7 @@ function getTrackerAuthHeader() {
 export async function crawler({ referenceNumber, userData }) {
   const url = `https://trackerit.fly.dev/api/tracker/correios/${referenceNumber}`;
 
-  let objeto = {
-    codigo: referenceNumber,
-    historico: [],
-    lastStatus: "",
-  };
+  let objeto = new Item(referenceNumber);
 
   let response;
 
@@ -31,14 +28,17 @@ export async function crawler({ referenceNumber, userData }) {
     });
 
     if (!response?.ok) {
-      console.warn(`Server returned a non-success status`, response);
-      objeto.lastStatus = `Erro ao verificar status do objeto: ${response.status} - ${response.statusText}`;
+      objeto.lastStatus = `Erro ao verificar status do objeto: ${response.status} ${response.statusText}`;
       return objeto;
     }
 
     const item = await response.json();
-    objeto.historico = item.eventos ? prepareHistory(item.eventos) : [];
     objeto.lastStatus = item.mensagem;
+    objeto.isSuccess = true;
+
+    if (item.eventos) {
+      objeto.eventos = prepareEventos(item.eventos);
+    }
 
     return objeto;
   } catch (error) {
@@ -48,15 +48,15 @@ export async function crawler({ referenceNumber, userData }) {
   }
 }
 
-function prepareHistory(eventos) {
-  const historico = eventos.map((e) => ({
+function prepareEventos(eventos = []) {
+  const events = eventos.map((e) => ({
     data: e.dtHrCriado,
     situacao: e.descricao,
     local: getLocal(e.unidade),
     detalhes: getLocal(e.unidadeDestino),
   }));
 
-  return historico;
+  return events;
 }
 
 function getLocal(unidade) {
