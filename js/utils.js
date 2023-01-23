@@ -1,3 +1,5 @@
+import { getSettings } from "./backend.js";
+
 function formatDate(date) {
   if (!date) return date;
 
@@ -13,7 +15,7 @@ function formatDate(date) {
   return date.toLocaleDateString(language, options);
 }
 
-function dateTimeReviver(key, value) {
+export function dateTimeReviver(_key, value) {
   const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
   if (typeof value === "string" && dateFormat.test(value)) {
@@ -23,11 +25,7 @@ function dateTimeReviver(key, value) {
   return value;
 }
 
-const statusesClass = {
-  OBJETO_ENTREGUE_AO_DESTINATÁRIO: "green",
-};
-
-function message(options) {
+export function message(options) {
   let opt = {
     type: "info",
     icon: "info",
@@ -52,7 +50,7 @@ function message(options) {
   }
 }
 
-async function playSound(type) {
+export async function playSound(type) {
   const settings = await getSettings();
 
   if (settings.audioEnabled) {
@@ -70,26 +68,7 @@ async function playSound(type) {
   }
 }
 
-function showNotification(item) {
-  const options = {
-    body: `${item.lastStatus}\nVerificado às: ${formatDate(item.checkedAt)}`,
-    icon: "../256x256.png",
-  };
-
-  const description = item.referenceDescription
-    ? `(${item.referenceDescription})`
-    : "";
-  const title = `${item.referenceNumber} ${description}`;
-
-  const notification = new Notification(title, options);
-  notification.onclick = function (event) {
-    event.preventDefault();
-    chrome.runtime.sendMessage({ action: "openOptionsTab", item: item });
-    openOptionsTab(item);
-  };
-}
-
-function highlightItem(item) {
+export function highlightItem(item) {
   const tr = document.querySelector(`tr[data-reference-number="${item}"]`);
   if (!tr) return;
   tr.classList.add("recently-updated");
@@ -98,23 +77,7 @@ function highlightItem(item) {
   }, 1000);
 }
 
-function openOptionsTab(item) {
-  chrome.tabs.query(
-    { url: chrome.extension.getURL("options.html") },
-    (tabs) => {
-      if (tabs.length) {
-        const tab = tabs[0];
-        chrome.tabs.update(tab.id, { active: true }, function () {
-          highlightItem(item.referenceNumber);
-        });
-      } else {
-        chrome.tabs.create({ url: chrome.extension.getURL("../options.html") });
-      }
-    }
-  );
-}
-
-function noObjects() {
+export function noObjects() {
   return `<div id="message-container" class="ui info icon message">
             <i class="info icon"></i>
             <div class="content">
@@ -123,7 +86,7 @@ function noObjects() {
           </div>`;
 }
 
-function applyTheme(darkTheme) {
+export function applyTheme(darkTheme) {
   const href = `css/themes/dark.css`;
   const link = document.querySelector(`link[href="${href}"]`);
 
@@ -140,15 +103,19 @@ function applyTheme(darkTheme) {
   if (elm) elm.checked = darkTheme;
 }
 
-function sort(items, prop, order) {
+export function sort(items, prop, order) {
   if (!items.length) return [];
 
   items.sort((a, b) => {
-    const isDate = moment(a[prop]).isValid();
+    const isDate = Date.parse(a[prop]);
     if (order === "asc") {
-      return isDate ? moment(a[prop]).diff(moment(b[prop])) : a[prop] > b[prop];
+      return isDate
+        ? Date.parse(a[prop]) - Date.parse(b[prop])
+        : a[prop] > b[prop];
     } else if (order === "desc") {
-      return isDate ? moment(b[prop]).diff(moment(a[prop])) : b[prop] > a[prop];
+      return isDate
+        ? Date.parse(b[prop]) - Date.parse(a[prop])
+        : b[prop] > a[prop];
     } else {
       throw new Error("You should define the order for sort the items");
     }
@@ -157,7 +124,7 @@ function sort(items, prop, order) {
   return items;
 }
 
-function momentFromNow() {
+export function momentFromNow() {
   $("[data-moment]").each(function () {
     const date = this.dataset.moment;
     const formatted = this.dataset.formatted;
@@ -172,17 +139,14 @@ function momentFromNow() {
   });
 }
 
-function hasTracks(item) {
+export function hasTracks(item) {
   return item.tracks.length > 0;
 }
 
-function firstTrack(item) {
-  if (hasTracks(item)) {
-    const index = item.tracks.length - 1;
-    return item.tracks[index];
-  }
+export function lastTrack(item) {
+  return item.tracks[0];
 }
 
-function lastTrack(item) {
-  return item.tracks[0];
+export function isEmpty(obj = {}) {
+  return Object.keys(obj).length === 0;
 }
