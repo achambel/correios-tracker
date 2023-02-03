@@ -10,8 +10,7 @@ import {
   createNotification,
   tracker,
   willNotify,
-  getUserProfile,
-  sendMessage,
+  getToken,
 } from "./backend.js";
 
 import {
@@ -730,8 +729,8 @@ function batchActions(fn) {
 }
 
 async function doTracker(referenceNumber) {
-  const user = await getUserProfile();
-  if (!user) {
+  const token = await getToken();
+  if (!token) {
     showNoUserModal();
     return;
   }
@@ -759,6 +758,12 @@ function showNoUserModal() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const token = await getToken();
+  if (!token) {
+    window.location.href = chrome.runtime.getURL("signin.html");
+    return;
+  }
+
   const settings = await initializeSettings();
   renderActiveItems();
   applyTheme(settings.darkTheme);
@@ -785,11 +790,15 @@ $("#active-items-link").click(() => renderActiveItems());
 $("#settings-link").click(() => renderSettings());
 
 $("#help-link").click(() => $("#help-modal").modal("show"));
+$(".signin-info").click(() => {
+  const loginURL = chrome.runtime.getURL("signin.html");
+  window.location.href = loginURL;
+});
 
 chrome.runtime.onMessage.addListener((req, _sender, _response) => {
   if (req.action === messageActions.RELOAD_ACTIVE_ITEMS) {
     renderActiveItems();
-  } else if (req.action === messageActions.USER_NOT_FOUND) {
+  } else if (req.action === messageActions.TOKEN_NOT_FOUND) {
     showNoUserModal();
   }
 });

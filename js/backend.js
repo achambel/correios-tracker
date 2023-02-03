@@ -1,6 +1,7 @@
 import { dateTimeReviver, sort } from "./utils.js";
 import { Item } from "./item.js";
 import { crawler } from "./service.js";
+import { storageKeys } from "./constants.js";
 
 export async function getSettings() {
   const db = await chrome.storage.sync.get("settings");
@@ -18,7 +19,7 @@ export async function getItems() {
       const regex = /^[\w\d]{9,21}$/;
 
       for (const [key, value] of Object.entries(storage)) {
-        if (regex.test(key)) {
+        if (regex.test(key) && typeof value === "string") {
           const item = JSON.parse(value, dateTimeReviver);
           if (item.hasOwnProperty("referenceNumber")) {
             trackItems.push(item);
@@ -77,7 +78,7 @@ export function createGenericNotification({ title, message }) {
 }
 export async function getCurrentTab() {
   let queryOptions = {
-    url: `chrome-extension://${chrome.runtime.id}/options.html`,
+    url: chrome.runtime.getURL("index.html"),
   };
   // `tab` will either be a `tabs.Tab` instance or `undefined`.
   let [tab] = await chrome.tabs.query(queryOptions);
@@ -173,11 +174,11 @@ export async function tracker(referenceNumber) {
     updateItemWithRestriction(referenceNumber);
     return;
   }
-  const user = await getUserProfile();
+  const token = await getToken();
   const user_stats = await getUserStats();
-  const userData = { user, user_stats };
+  const userData = { user_stats };
 
-  const response = await crawler({ referenceNumber, userData });
+  const response = await crawler({ referenceNumber, userData, token });
   const item = await trackable(response);
 
   return item;
@@ -198,15 +199,10 @@ async function getUserStats() {
   };
 }
 
-export async function getUserProfile() {
-  const { email, id } = (await chrome.identity.getProfileUserInfo()) || {};
+export async function getToken() {
+  const token = await getUserToken();
 
-  if (!email || !id) return;
-
-  return {
-    email,
-    name: id,
-  };
+  return token;
 }
 
 export async function sendMessage(message) {
@@ -224,4 +220,16 @@ export async function sendMessage(message) {
 
   console.log("OK, sending message to tab ", tab, message);
   chrome.tabs.sendMessage(tab.id, { action: message });
+}
+
+export async function setUserToken({ token = null }) {
+  await chrome.storage.sync.set({ [storageKeys.USER_TOKEN]: { token } });
+}
+
+export async function getUserToken() {
+  const db = await chrome.storage.sync.get(storageKeys.USER_TOKEN);
+
+  const { token } = db[storageKeys.USER_TOKEN] || {};
+
+  return token;
 }
