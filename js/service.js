@@ -2,8 +2,8 @@ import { userNotAuthenticated } from "./backend.js";
 import { Item } from "./item.js";
 import { isEmpty } from "./utils.js";
 
-// const BASE_URL = "https://trackerit.fly.dev";
-const BASE_URL = "http://localhost:4000";
+const BASE_URL = "https://trackerit.fly.dev";
+// const BASE_URL = "http://localhost:4000";
 
 function getClientHeader() {
   const browserClients = {

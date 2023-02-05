@@ -1,15 +1,5 @@
 import { getSettings } from "./backend.js";
 
-export function dateTimeReviver(_key, value) {
-  const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-
-  if (typeof value === "string" && dateFormat.test(value)) {
-    return new Date(value);
-  }
-
-  return value;
-}
-
 export function message(options) {
   let opt = {
     type: "info",

@@ -1,4 +1,4 @@
-import { dateTimeReviver, sort } from "./utils.js";
+import { sort } from "./utils.js";
 import { Item } from "./item.js";
 import { crawler } from "./service.js";
 import { messageActions, storageKeys, text } from "./constants.js";
@@ -14,22 +14,19 @@ export async function getSettings() {
 
 export async function getItems() {
   let trackItems = [];
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(null, (storage) => {
-      const regex = /^[\w\d]{9,21}$/;
+  const storage = await chrome.storage.sync.get(null);
+  const regex = /^[\w\d]{9,21}$/;
 
-      for (const [key, value] of Object.entries(storage)) {
-        if (regex.test(key) && typeof value === "string") {
-          const item = JSON.parse(value, dateTimeReviver);
-          if (item.referenceNumber) {
-            trackItems.push(item);
-          }
-        }
+  for (const [key, value] of Object.entries(storage)) {
+    if (regex.test(key) && typeof value === "string") {
+      const item = JSON.parse(value);
+      if (item.referenceNumber) {
+        trackItems.push(item);
       }
+    }
+  }
 
-      resolve(trackItems);
-    });
-  });
+  return trackItems;
 }
 
 export async function getItem(referenceNumber) {
