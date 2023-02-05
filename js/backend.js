@@ -1,7 +1,7 @@
 import { dateTimeReviver, sort } from "./utils.js";
 import { Item } from "./item.js";
 import { crawler } from "./service.js";
-import { storageKeys } from "./constants.js";
+import { messageActions, storageKeys, text } from "./constants.js";
 
 export async function getSettings() {
   const db = await chrome.storage.sync.get("settings");
@@ -21,7 +21,7 @@ export async function getItems() {
       for (const [key, value] of Object.entries(storage)) {
         if (regex.test(key) && typeof value === "string") {
           const item = JSON.parse(value, dateTimeReviver);
-          if (item.hasOwnProperty("referenceNumber")) {
+          if (item.referenceNumber) {
             trackItems.push(item);
           }
         }
@@ -76,6 +76,7 @@ export function createGenericNotification({ title, message }) {
     message,
   });
 }
+
 export async function getCurrentTab() {
   let queryOptions = {
     url: chrome.runtime.getURL("index.html"),
@@ -226,10 +227,30 @@ export async function setUserToken({ token = null }) {
   await chrome.storage.sync.set({ [storageKeys.USER_TOKEN]: { token } });
 }
 
+export async function removeUserToken() {
+  await chrome.storage.sync.remove(storageKeys.USER_TOKEN);
+}
+
 export async function getUserToken() {
   const db = await chrome.storage.sync.get(storageKeys.USER_TOKEN);
 
   const { token } = db[storageKeys.USER_TOKEN] || {};
 
   return token;
+}
+
+export async function userNotAuthenticated() {
+  await removeUserToken();
+  sendMessage(messageActions.TOKEN_NOT_FOUND);
+
+  const badgeText = await chrome.action.getBadgeText({});
+  if (badgeText === text.LOGIN) return;
+
+  await chrome.action.setBadgeText({ text: text.LOGIN }, () => {});
+  await chrome.action.setBadgeBackgroundColor({ color: "#e06c57" });
+
+  createGenericNotification({
+    title: "Usuário não autenticado",
+    message: "Faça o login antes de continuar",
+  });
 }

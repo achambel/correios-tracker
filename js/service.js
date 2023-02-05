@@ -1,3 +1,4 @@
+import { userNotAuthenticated } from "./backend.js";
 import { Item } from "./item.js";
 import { isEmpty } from "./utils.js";
 
@@ -41,6 +42,10 @@ export async function crawler({ referenceNumber, userData, token = "" }) {
     });
 
     if (!response?.ok) {
+      if (response.status === 401) {
+        await userNotAuthenticated();
+      }
+
       objeto.lastStatus = `Erro ao verificar status do objeto: ${response.status} ${response.statusText}`;
       return objeto;
     }

@@ -25,8 +25,6 @@ export async function getGoogleAuthToken() {
     const params = new URLSearchParams(url.hash);
     const token = params.get("#access_token");
 
-    console.log(token);
-
     return token;
   } catch (error) {
     console.error(error);

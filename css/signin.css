@@ -12,7 +12,11 @@ picture {
 }
 
 body {
-  background: linear-gradient(0deg, rgb(0 158 213) 0%, rgb(0 0 0 / 95%) 100%);
+  background: linear-gradient(
+    0deg,
+    rgb(0 158 213) 0%,
+    rgb(224 108 87 / 95%) 100%
+  );
   display: grid;
   min-height: 100vh;
   place-items: center;

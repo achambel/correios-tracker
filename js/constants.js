@@ -16,3 +16,7 @@ export const messageActions = {
 export const storageKeys = {
   USER_TOKEN: "userToken",
 };
+
+export const text = {
+  LOGIN: "login",
+};

@@ -6,6 +6,7 @@ import {
   createNotification,
   sendMessage,
   getToken,
+  userNotAuthenticated,
 } from "./backend.js";
 import { messageActions } from "./constants.js";
 
@@ -23,7 +24,7 @@ chrome.alarms.onAlarm.addListener(async function (alarm) {
     const token = await getToken();
 
     if (!token) {
-      sendMessage(messageActions.TOKEN_NOT_FOUND);
+      await userNotAuthenticated();
       return;
     }
 
