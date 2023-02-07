@@ -1,6 +1,7 @@
-import { dateTimeReviver, sort } from "./utils.js";
+import { sort } from "./utils.js";
 import { Item } from "./item.js";
 import { crawler } from "./service.js";
+import { messageActions, storageKeys, text } from "./constants.js";
 
 export async function getSettings() {
   const db = await chrome.storage.sync.get("settings");
@@ -13,22 +14,19 @@ export async function getSettings() {
 
 export async function getItems() {
   let trackItems = [];
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(null, (storage) => {
-      const regex = /^[\w\d]{9,21}$/;
+  const storage = await chrome.storage.sync.get(null);
+  const regex = /^[\w\d]{9,21}$/;
 
-      for (const [key, value] of Object.entries(storage)) {
-        if (regex.test(key)) {
-          const item = JSON.parse(value, dateTimeReviver);
-          if (item.hasOwnProperty("referenceNumber")) {
-            trackItems.push(item);
-          }
-        }
+  for (const [key, value] of Object.entries(storage)) {
+    if (regex.test(key) && typeof value === "string") {
+      const item = JSON.parse(value);
+      if (item.referenceNumber) {
+        trackItems.push(item);
       }
+    }
+  }
 
-      resolve(trackItems);
-    });
-  });
+  return trackItems;
 }
 
 export async function getItem(referenceNumber) {
@@ -75,9 +73,10 @@ export function createGenericNotification({ title, message }) {
     message,
   });
 }
+
 export async function getCurrentTab() {
   let queryOptions = {
-    url: `chrome-extension://${chrome.runtime.id}/options.html`,
+    url: chrome.runtime.getURL("index.html"),
   };
   // `tab` will either be a `tabs.Tab` instance or `undefined`.
   let [tab] = await chrome.tabs.query(queryOptions);
@@ -173,11 +172,11 @@ export async function tracker(referenceNumber) {
     updateItemWithRestriction(referenceNumber);
     return;
   }
-  const user = await getUserProfile();
+  const token = await getToken();
   const user_stats = await getUserStats();
-  const userData = { user, user_stats };
+  const userData = { user_stats };
 
-  const response = await crawler({ referenceNumber, userData });
+  const response = await crawler({ referenceNumber, userData, token });
   const item = await trackable(response);
 
   return item;
@@ -198,15 +197,10 @@ async function getUserStats() {
   };
 }
 
-export async function getUserProfile() {
-  const { email, id } = (await chrome.identity.getProfileUserInfo()) || {};
+export async function getToken() {
+  const token = await getUserToken();
 
-  if (!email || !id) return;
-
-  return {
-    email,
-    name: id,
-  };
+  return token;
 }
 
 export async function sendMessage(message) {
@@ -224,4 +218,36 @@ export async function sendMessage(message) {
 
   console.log("OK, sending message to tab ", tab, message);
   chrome.tabs.sendMessage(tab.id, { action: message });
+}
+
+export async function setUserToken({ token = null }) {
+  await chrome.storage.sync.set({ [storageKeys.USER_TOKEN]: { token } });
+}
+
+export async function removeUserToken() {
+  await chrome.storage.sync.remove(storageKeys.USER_TOKEN);
+}
+
+export async function getUserToken() {
+  const db = await chrome.storage.sync.get(storageKeys.USER_TOKEN);
+
+  const { token } = db[storageKeys.USER_TOKEN] || {};
+
+  return token;
+}
+
+export async function userNotAuthenticated() {
+  await removeUserToken();
+  sendMessage(messageActions.TOKEN_NOT_FOUND);
+
+  const badgeText = await chrome.action.getBadgeText({});
+  if (badgeText === text.LOGIN) return;
+
+  await chrome.action.setBadgeText({ text: text.LOGIN }, () => {});
+  await chrome.action.setBadgeBackgroundColor({ color: "#e06c57" });
+
+  createGenericNotification({
+    title: "Usuário não autenticado",
+    message: "Faça o login antes de continuar",
+  });
 }

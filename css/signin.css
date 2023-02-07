@@ -1,0 +1,49 @@
+::before,
+::after,
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+body {
+  background: linear-gradient(
+    0deg,
+    rgb(0 158 213) 0%,
+    rgb(224 108 87 / 95%) 100%
+  );
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+}
+
+.login-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 25.875rem;
+
+  color: #fff;
+}
+
+.login-header h1 {
+  display: contents;
+}
+
+.login-card {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+
+  padding: 2rem;
+  display: grid;
+  gap: 2rem;
+}

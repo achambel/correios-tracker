@@ -10,8 +10,7 @@ import {
   createNotification,
   tracker,
   willNotify,
-  getUserProfile,
-  sendMessage,
+  getToken,
 } from "./backend.js";
 
 import {
@@ -383,9 +382,7 @@ async function renderArchivedItems() {
                   </span>
                 </td>
                 <td data-moment="${
-                  hasTracks(item)
-                    ? moment(lastTrack(item).date, "DD/MM/YYYY HH:mm").format()
-                    : ""
+                  hasTracks(item) ? moment(lastTrack(item).date).format() : ""
                 }"></td>
                 <td>
                   <button class="ui labeled icon inverted tiny green button show-track-history">
@@ -715,8 +712,8 @@ async function loadTrackItems(transitionItem, sorter) {
       });
     });
 
-    $("#archiveAll").click((_) => batchActions(archiveTrackable));
-    $("#removeAll").click((_) => batchActions(removeTrackable));
+    $("#archiveAll").click(() => batchActions(archiveTrackable));
+    $("#removeAll").click(() => batchActions(removeTrackable));
   }
 
   if (transitionItem) {
@@ -730,8 +727,8 @@ function batchActions(fn) {
 }
 
 async function doTracker(referenceNumber) {
-  const user = await getUserProfile();
-  if (!user) {
+  const token = await getToken();
+  if (!token) {
     showNoUserModal();
     return;
   }
@@ -759,6 +756,14 @@ function showNoUserModal() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const token = await getToken();
+  if (!token) {
+    window.location.href = chrome.runtime.getURL("signin.html");
+    return;
+  }
+
+  await chrome.action.setBadgeText({ text: "" }, () => {});
+
   const settings = await initializeSettings();
   renderActiveItems();
   applyTheme(settings.darkTheme);
@@ -785,11 +790,15 @@ $("#active-items-link").click(() => renderActiveItems());
 $("#settings-link").click(() => renderSettings());
 
 $("#help-link").click(() => $("#help-modal").modal("show"));
+$(".signin-info").click(() => {
+  const loginURL = chrome.runtime.getURL("signin.html");
+  window.location.href = loginURL;
+});
 
-chrome.runtime.onMessage.addListener((req, _sender, _response) => {
+chrome.runtime.onMessage.addListener((req) => {
   if (req.action === messageActions.RELOAD_ACTIVE_ITEMS) {
     renderActiveItems();
-  } else if (req.action === messageActions.USER_NOT_FOUND) {
+  } else if (req.action === messageActions.TOKEN_NOT_FOUND) {
     showNoUserModal();
   }
 });

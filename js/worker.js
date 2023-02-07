@@ -4,13 +4,14 @@ import {
   tracker,
   willNotify,
   createNotification,
-  getUserProfile,
   sendMessage,
+  getToken,
+  userNotAuthenticated,
 } from "./backend.js";
 import { messageActions } from "./constants.js";
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.tabs.create({ url: chrome.runtime.getURL("../options.html") });
+  chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
 });
 
 chrome.alarms.create("checkTrackerItems", {
@@ -20,9 +21,10 @@ chrome.alarms.create("checkTrackerItems", {
 
 chrome.alarms.onAlarm.addListener(async function (alarm) {
   if (alarm.name === "checkTrackerItems") {
-    const user = await getUserProfile();
-    if (!user) {
-      sendMessage(messageActions.USER_NOT_FOUND);
+    const token = await getToken();
+
+    if (!token) {
+      await userNotAuthenticated();
       return;
     }
 
@@ -57,7 +59,7 @@ async function showTab() {
     return;
   }
 
-  chrome.tabs.create({ url: chrome.runtime.getURL("../options.html") });
+  chrome.tabs.create({ url: chrome.runtime.getURL("index.html") });
 }
 
 chrome.action.onClicked.addListener(async () => await showTab());

@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3RLYtR9nuPai1ck06RC3cGwiEXQolypPOVX10sdDLC7kHuoGnvE1mydrTabNAptyl48vWSxq47iRsEdVdZS0Tdq4D7GHhSS4IqBrQqDVrVqsqgtWjlbn4MeonV/+s0YItGIPY4Xb+1GGrdYsl31hFR4CWKMVcgv8xqDMBqzilurkG2c/q1jdmpNKRB5t4rAOoJ+v6CMx1HA59MuPohmcFW0IPkcz/XiWuRZhspcjuYS0NscIm5zSiUdPZBwdPmB1IVTH69+Y9Dnw+Z+Rt1xFLoqZ/mPO3HrCGF1daKJHItvP4ff3066UrcEiHJjjTkk0BmefDAiEDUt5hhqg1nk1PQIDAQAB",
 
   "name": "Correios Tracker",
   "description": "Bem vindo(a) ao Correios Tracker, gerencie e rastreie seus objetos de forma automatizada.",
   "short_name": "Correios Tracker",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "author": "Adriano Chambel <acmlima.softweb@gmail.com>",
   "homepage_url": "https://github.com/achambel/correios-tracker",
 
@@ -16,8 +17,7 @@
     "storage",
     "alarms",
     "unlimitedStorage",
-    "identity",
-    "identity.email"
+    "identity"
   ],
 
   "host_permissions": ["https://trackerit.fly.dev/*"],

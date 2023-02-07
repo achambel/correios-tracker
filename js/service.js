@@ -1,16 +1,34 @@
+import { userNotAuthenticated } from "./backend.js";
 import { Item } from "./item.js";
 import { isEmpty } from "./utils.js";
 
-function getTrackerAuthHeader() {
+const BASE_URL = "https://trackerit.fly.dev";
+// const BASE_URL = "http://localhost:4000";
+
+function getClientHeader() {
+  const browserClients = {
+    ["chrome-extension"]: "chrome_extension",
+  };
+
+  const [extension] = chrome.runtime.getURL("").split("://");
+
+  const client_type = browserClients[extension];
   const app_id = chrome.runtime.id;
-  const client_type = "chrome_extension";
 
   const toEncode = `app_id=${app_id}&client_type=${client_type}`;
   return btoa(toEncode);
 }
 
-export async function crawler({ referenceNumber, userData }) {
-  const url = `https://trackerit.fly.dev/api/tracker/correios/${referenceNumber}`;
+function getBaseHeaders() {
+  return {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "x-tracker-client": getClientHeader(),
+  };
+}
+
+export async function crawler({ referenceNumber, userData, token = "" }) {
+  const url = new URL(`/api/tracker/correios/${referenceNumber}`, BASE_URL);
 
   let objeto = new Item(referenceNumber);
 
@@ -18,16 +36,16 @@ export async function crawler({ referenceNumber, userData }) {
 
   try {
     response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        "x-tracker-auth": getTrackerAuthHeader(),
-      },
+      headers: { ...getBaseHeaders(), Authorization: `Bearer ${token}` },
       method: "POST",
       body: JSON.stringify(userData),
     });
 
     if (!response?.ok) {
+      if (response.status === 401) {
+        await userNotAuthenticated();
+      }
+
       objeto.lastStatus = `Erro ao verificar status do objeto: ${response.status} ${response.statusText}`;
       return objeto;
     }
@@ -73,4 +91,28 @@ function getLocal(unidade) {
     .join(", ");
 
   return `${unidade.tipo}: ${endereco}`;
+}
+
+export async function googleSignin({ token = "" }) {
+  if (!token) {
+    throw new Error("Invalid token");
+  }
+
+  const url = new URL("/api/tracker/auth/google", BASE_URL);
+
+  const response = await fetch(url, {
+    headers: getBaseHeaders(),
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Unable to get a success response from our server! Status is: ${response.status}`
+    );
+  }
+
+  const apiToken = await response.json();
+
+  return apiToken;
 }

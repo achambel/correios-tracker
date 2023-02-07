@@ -10,5 +10,13 @@ export const statusesClass = {
 
 export const messageActions = {
   RELOAD_ACTIVE_ITEMS: "reloadActiveItems",
-  USER_NOT_FOUND: "userNotFound",
+  TOKEN_NOT_FOUND: "tokenNotFound",
+};
+
+export const storageKeys = {
+  USER_TOKEN: "userToken",
+};
+
+export const text = {
+  LOGIN: "login",
 };
