@@ -4,6 +4,7 @@ export const statuses = {
 
 export const statusesClass = {
   ["Objeto entregue ao destinatário"]: "green",
+  ["Objeto entregue ao remetente"]: "green",
   ["SRO-020: Objeto não encontrado na base de dados dos Correios."]: "grey",
   ["Ainda não verificado"]: "orange",
 };
